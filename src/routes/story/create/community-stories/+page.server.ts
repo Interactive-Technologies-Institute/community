@@ -16,7 +16,8 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 
 const youtube = google.youtube('v3');
 
-const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
+//const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
+const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
 let gTokens = {};
 
 export const load = async ({ event, locals, url }) => {
