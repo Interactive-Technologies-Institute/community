@@ -39,7 +39,19 @@
   async function startRecording(recordingT: string) {
     try {
       recordingType = recordingT;
-      const mediaConstraints = { video: true, audio: true };
+      //const mediaConstraints = { video: true, audio: true };
+      const mediaConstraints = {
+        video: {
+          facingMode: { ideal: "environment" }, // 'user' for front camera, 'environment' for rear camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
+      };
 
       videoStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
 
