@@ -17,9 +17,9 @@
   });
 
   function startCamera() {
-    // navigator.mediaDevices.getUserMedia({ video: true})
     // for mobile
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
+    //navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
+    navigator.mediaDevices.getUserMedia({ video: true})
       .then(stream => {
         video.srcObject = stream;
         video.play();
