@@ -75,6 +75,18 @@
 						Map
 					</a>
 				</FeatureWrapper>
+				<FeatureWrapper feature="stories">
+					<a
+						href="/story"
+						on:click={() => (open = false)}
+						class={cn(
+							'transition-colors hover:text-foreground/80',
+							$page.url.pathname.startsWith('/story') ? 'text-foreground' : 'text-foreground/60'
+						)}
+					>
+						Map
+					</a>
+				</FeatureWrapper>
 			</nav>
 		</ScrollArea>
 	</Sheet.Content>

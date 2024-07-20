@@ -610,6 +610,114 @@ export type Database = {
         }
         Relationships: []
       }
+      story: {
+        Row: {
+          id: number
+          image: string[]
+          inserted_at: string
+          insights_gpt: string | null
+          pub_quotes: string[] | null
+          pub_selected_images: string[] | null
+          pub_story_text: string[] | null
+          recording_link: string
+          role: Database["public"]["Enums"]["story_role"]
+          storyteller: string
+          tags: string[]
+          transcription: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: number
+          image: string[]
+          inserted_at?: string
+          insights_gpt?: string | null
+          pub_quotes?: string[] | null
+          pub_selected_images?: string[] | null
+          pub_story_text?: string[] | null
+          recording_link: string
+          role: Database["public"]["Enums"]["story_role"]
+          storyteller: string
+          tags: string[]
+          transcription?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: number
+          image?: string[]
+          inserted_at?: string
+          insights_gpt?: string | null
+          pub_quotes?: string[] | null
+          pub_selected_images?: string[] | null
+          pub_story_text?: string[] | null
+          recording_link?: string
+          role?: Database["public"]["Enums"]["story_role"]
+          storyteller?: string
+          tags?: string[]
+          transcription?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_moderation: {
+        Row: {
+          comment: string
+          id: number
+          inserted_at: string
+          status: Database["public"]["Enums"]["moderation_status"]
+          story_id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          id?: number
+          inserted_at?: string
+          status: Database["public"]["Enums"]["moderation_status"]
+          story_id: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          id?: number
+          inserted_at?: string
+          status?: Database["public"]["Enums"]["moderation_status"]
+          story_id?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_moderation_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "story"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_moderation_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "story_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_moderation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -907,6 +1015,42 @@ export type Database = {
           },
         ]
       }
+      story_tags: {
+        Row: {
+          count: number | null
+          tag: string | null
+        }
+        Relationships: []
+      }
+      story_view: {
+        Row: {
+          id: number | null
+          image: string[] | null
+          inserted_at: string | null
+          insights_gpt: string | null
+          moderation_status:
+            | Database["public"]["Enums"]["moderation_status"]
+            | null
+          pub_quotes: string[] | null
+          pub_selected_images: string[] | null
+          pub_story_text: string[] | null
+          recording_link: string | null
+          role: Database["public"]["Enums"]["story_role"] | null
+          storyteller: string | null
+          tags: string[] | null
+          transcription: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       authorize: {
@@ -955,7 +1099,7 @@ export type Database = {
       }
     }
     Enums: {
-      feature: "howtos" | "events" | "map" | "academy"
+      feature: "howtos" | "events" | "map" | "academy" | "stories"
       how_to_difficulty: "easy" | "medium" | "hard"
       how_to_duration: "short" | "medium" | "long"
       moderation_status:
@@ -976,6 +1120,7 @@ export type Database = {
         | "map_pin_changes_requested"
         | "map_pin_approved"
         | "map_pin_rejected"
+      story_role: "community" | "technician"
       user_permission:
         | "user_roles.update"
         | "user_types.update"
@@ -989,6 +1134,10 @@ export type Database = {
         | "events.update"
         | "events.delete"
         | "events.moderate"
+        | "story.create"
+        | "story.update"
+        | "story.delete"
+        | "story.moderate"
         | "map.create"
         | "map.update"
         | "map.delete"
@@ -1086,4 +1235,3 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
-
