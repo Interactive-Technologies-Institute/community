@@ -39,8 +39,8 @@
   async function startRecording(recordingT: string) {
     try {
       recordingType = recordingT;
-      const mediaConstraints = { video: true, audio: true };
-      /* const mediaConstraints = {
+      //const mediaConstraints = { video: true, audio: true };
+      const mediaConstraints = {
         video: {
           facingMode: { ideal: "environment" }, // 'user' for front camera, 'environment' for rear camera
           width: { ideal: 1280 },
@@ -51,7 +51,7 @@
           noiseSuppression: true,
           sampleRate: 44100
         }
-      }; */
+      };
 
       videoStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
 
@@ -129,12 +129,14 @@
 
 <div>
   {#if recordingType === ''}
-    <Button on:click={() => startRecording('video')} disabled={isRecording}>
+    <!-- <Button on:click={() => startRecording('video')} disabled={isRecording}>
       <Video />
     </Button>
     <Button on:click={() => startRecording('audio')} disabled={isRecording}>
       <Mic />
-    </Button>
+    </Button> -->
+    <label for="videoFile">Upload a video:</label>
+    <input type="file" id="videoFile" capture="environment" accept="video/*" />
   {:else}
     {#if recordingType === 'video' && isRecording}
       <video class="pb-5" bind:this={videoElement} autoplay muted></video>
