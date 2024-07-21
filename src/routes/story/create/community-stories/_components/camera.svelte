@@ -18,8 +18,8 @@
 
   function startCamera() {
     // for mobile
-    //navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
-    navigator.mediaDevices.getUserMedia({ video: true})
+    //navigator.mediaDevices.getUserMedia({ video: true})
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
       .then(stream => {
         video.srcObject = stream;
         video.play();

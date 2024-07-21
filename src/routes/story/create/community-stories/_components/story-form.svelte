@@ -2,6 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import * as Form from '$lib/components/ui/form';
   import * as Carousel from "$lib/components/ui/carousel/index.js";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { createStorySchema, type CreateStorySchema } from '$lib/schemas/story';
   
   import { superForm, type SuperValidated } from 'sveltekit-superforms';
@@ -40,7 +41,7 @@
 
     $formData.role = "community";
     
-    async function handleUpdateStep(event) {
+    /* async function handleUpdateStep(event) {
       page = event.detail.page;
       recording = event.detail.file;
       audio = event.detail.audio;
@@ -48,7 +49,7 @@
       $formData.recording_link = "";
       updateHiddenFileInput(recording);
       updateHiddenAudioFileInput(audio);
-    }
+    } */
   
     $: imageInputElements = Array(3).fill(null);
     let fileInputElement;
@@ -170,14 +171,29 @@
         </Carousel.Root>
       </div>
       <div class="mt-4 text-center">
-        <VideoAudio {page} on:updateStep={handleUpdateStep} />
+        <Form.Field {form} name="recording" class="text-center">
+          <Form.Control let:attrs>
+            <label for="videoFile">Upload a video:</label>
+            <span class="flex justify-center gap-2 inline-block pt-3">
+              <Input  {...attrs} type="file" bind:value={$formData.recording} capture="environment" accept="video/*" />
+              <Form.FieldErrors />
+              <span><Button class="p-2" type="button" on:click={() => page = 4}><ArrowRight /></Button></span>
+            </span>
+          </Form.Control>
+        </Form.Field>
+        <!-- <VideoAudio {page} on:updateStep={handleUpdateStep} /> -->
       </div>
     </div>
 
     <div class="page" class:show={page === 4}>
-      <Camera bind:capturedImages={images} on:imagesCaptured={handleImagesCaptured}/>
+      <!-- <Camera bind:capturedImages={images} on:imagesCaptured={handleImagesCaptured}/> -->
+      <Form.Field {form} name="images" class="text-center">
+        <Form.Control let:attrs>
+          <Input  {...attrs} type="file" bind:value={$formData.images} capture="environment" accept="image/*" multiple/>
+        </Form.Control>
+      </Form.Field>
       <div class="mt-28 text-center">
-        <Button type="submit" disabled={$submitting ||images.length < 3}>
+        <Button type="submit" disabled={$submitting || $formData.images.length < 3}>
           {#if $submitting}
             <Loader2 class="mr-2 h-4 w-4 animate-spin" />
           {/if}

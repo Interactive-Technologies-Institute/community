@@ -128,15 +128,15 @@
 </script>
 
 <div>
-  {#if recordingType === ''}
-    <!-- <Button on:click={() => startRecording('video')} disabled={isRecording}>
+  <label for="videoFile">Upload a video:</label>
+  <input type="file" id="videoFile" capture="environment" accept="video/*" />
+  <!-- {#if recordingType === ''}
+    <Button on:click={() => startRecording('video')} disabled={isRecording}>
       <Video />
     </Button>
     <Button on:click={() => startRecording('audio')} disabled={isRecording}>
       <Mic />
-    </Button> -->
-    <label for="videoFile">Upload a video:</label>
-    <input type="file" id="videoFile" capture="environment" accept="video/*" />
+    </Button>
   {:else}
     {#if recordingType === 'video' && isRecording}
       <video class="pb-5" bind:this={videoElement} autoplay muted></video>
@@ -151,7 +151,7 @@
             disabled={recordingType !== 'audio' && isRecording}>
       <Mic />
     </Button>
-  {/if}
+  {/if} -->
 
   <AlertDialog.Root  bind:open={showDialog}>
       <AlertDialog.Content>

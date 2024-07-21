@@ -90,6 +90,8 @@ export const actions = {
 			REDIRECT_URI
 		);
 
+		console.log(form.data)
+
 		try {
 			oauth2Client.setCredentials(gTokens);
 		} catch (error) {
@@ -99,20 +101,20 @@ export const actions = {
 		const tempImages = [
 			{
 				imageUrl: "",
-				image: form.data.image_1 as File
+				image: form.data.images[0] as File
 			},
 			{
 				imageUrl: "",
-				image: form.data.image_2 as File
+				image: form.data.images[1] as File
 			},
 			{
 				imageUrl: "",
-				image: form.data.image_3 as File
+				image: form.data.images[2] as File
 			},
 		]
 		
 		let recordingFile = form.data.recording as File;
-		let audioFile = form.data.audio as File;
+		//let audioFile = form.data.audio as File;
 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -140,12 +142,12 @@ export const actions = {
 			return { path: imageFileData.path, error: null };
 		}
 
-		const images = await Promise.all(
+		const userImages = await Promise.all(
 			tempImages.map(async (s) => {
 				let imagePath = '';
 				if (s.image) {
 					const { path } = await uploadImage(s.image);
-					// TOOD: handle error
+					// TODO: handle error
 					imagePath = path;
 				} else if (s.imageUrl) {
 					imagePath = s.imageUrl.split('/').pop() ?? '';
@@ -160,11 +162,11 @@ export const actions = {
 		async function transcribe() {
 			try {
 				const transcription = await openai.audio.transcriptions.create({
-					file: audioFile,
+					file: recording,
 					model: "whisper-1",
 					response_format: "text"
 				});
-
+				console.log(transcription)
 				return transcription;
 
 			} catch (error) {
@@ -237,12 +239,13 @@ export const actions = {
 			image_1_url,
 			image_2_url,
 			image_3_url,
+			images,
 			...data
 		} = form.data;
 
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
-		.insert({ ...data, image: images.map(img => img.image), recording_link: "teste", user_id: userId, transcription: await transcribe() });
+		.insert({ ...data, image: userImages.map(img => img.image), recording_link: "teste", user_id: userId, transcription: await transcribe() });
 
 		if (supabaseError) {
 			console.log("supabaseError", supabaseError.message)
