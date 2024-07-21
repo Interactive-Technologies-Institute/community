@@ -189,7 +189,9 @@
       <!-- <Camera bind:capturedImages={images} on:imagesCaptured={handleImagesCaptured}/> -->
       <Form.Field {form} name="images" class="text-center">
         <Form.Control let:attrs>
-          <Input  {...attrs} type="file" bind:value={$formData.images} capture="environment" accept="image/*" multiple/>
+          <Input  {...attrs} type="file" bind:value={$formData.images[0]} capture="environment" accept="image/*" />
+          <Input  {...attrs} type="file" bind:value={$formData.images[1]} capture="environment" accept="image/*" />
+          <Input  {...attrs} type="file" bind:value={$formData.images[2]} capture="environment" accept="image/*" />
         </Form.Control>
       </Form.Field>
       <div class="mt-28 text-center">
