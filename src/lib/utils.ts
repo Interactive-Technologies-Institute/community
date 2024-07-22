@@ -115,6 +115,7 @@ export async function handleFormAction<
 	const { requireAuth = true as RequireAuth } = options ?? {};
 	let userId: string | undefined = undefined;
 
+	console.log("REQUEST BEING SENT", event.request)
 	const form = await superValidate(event.request, zod(schema), { id: formId });
 
 	if (requireAuth) {
@@ -131,6 +132,7 @@ export async function handleFormAction<
 	assertUserId(userId, requireAuth);
 
 	if (!form.valid) {
+		console.log("nao passou na validacao")
 		const errorMessage = 'Invalid form.';
 		setFlash({ type: 'error', message: errorMessage }, event.cookies);
 		return fail(400, { message: errorMessage, form });
