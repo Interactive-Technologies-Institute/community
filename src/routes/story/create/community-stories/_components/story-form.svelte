@@ -196,11 +196,11 @@
         <Form.Control let:attrs>
           <Input  {...attrs} type="file" bind:value={$formData.images[0]} capture="environment" accept="image/*" />
           <Input  {...attrs} type="file" bind:value={$formData.images[1]} capture="environment" accept="image/*" />
-          <Input  {...attrs} type="file" bind:value={$formData.images[2]} capture="environment" accept="image/*" />
+          <!-- <Input  {...attrs} type="file" bind:value={$formData.images[2]} capture="environment" accept="image/*" /> -->
         </Form.Control>
       </Form.Field>
       <div class="mt-28 text-center">
-        <Button type="submit" disabled={$submitting || $formData.images.length < 3}>
+        <Button type="submit" disabled={$submitting || $formData.images.length < 2}>
           {#if $submitting}
             <Loader2 class="mr-2 h-4 w-4 animate-spin" />
           {/if}

@@ -23,7 +23,7 @@ export const createStorySchema = z
 		recording: z.instanceof(File, { message: 'Recording is required.' }).optional(),
 		tags: z.array(z.string()).min(1, { message: 'At least one tag is required' }),
 		role: z.enum(['community', 'technician']),
-		images: z.array(z.instanceof(File, { message: 'Images are required.' })).min(3, { message: 'At least three images are required' })
+		images: z.array(z.instanceof(File, { message: 'Images are required.' })).min(2, { message: 'At least two images are required' })
 	});
 
 export type CreateStorySchema = typeof createStorySchema;
