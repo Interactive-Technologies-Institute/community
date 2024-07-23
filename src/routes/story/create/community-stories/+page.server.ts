@@ -23,6 +23,7 @@ const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/communit
 let gTokens = {};
 
 export const load = async ({ event, locals, url }) => {
+	console.log("eu entro aqui no load")
 	const { session } = await locals.safeGetSession();
 	if (!session) {
 		return redirect(302, handleSignInRedirect(event));
@@ -87,6 +88,7 @@ export const actions = {
 	createStory: async (event) =>
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
 		console.log(recording_link)
+		console.log("eu entro aqui no createStory")
 		/* const oauth2Client = new google.auth.OAuth2(
 			PUBLIC_YOUTUBE_CLIENT_ID,
 			PUBLIC_YOUTUBE_SECRET_KEY,
