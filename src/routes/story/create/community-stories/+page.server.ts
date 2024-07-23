@@ -17,6 +17,7 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 const youtube = google.youtube('v3');
 
 let recording_link;
+let transcription;
 
 //const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
 const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
@@ -87,20 +88,6 @@ export const load = async ({ event, locals, url }) => {
 export const actions = {
 	createStory: async (event) =>
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
-		console.log(recording_link)
-		console.log("eu entro aqui no createStory")
-		/* const oauth2Client = new google.auth.OAuth2(
-			PUBLIC_YOUTUBE_CLIENT_ID,
-			PUBLIC_YOUTUBE_SECRET_KEY,
-			REDIRECT_URI
-		);
-
-		
-		try {
-			oauth2Client.setCredentials(gTokens);
-		} catch (error) {
-			console.log("Not possible to set credentials:", error)
-		} */
 
 		const tempImages = [
 			{
@@ -161,23 +148,6 @@ export const actions = {
 				return { ...data, image: imagePath };
 			})
 		);
-
-		// transcription
-		async function transcribe() {
-			try {
-				const transcription = await openai.audio.transcriptions.create({
-					file: recording,
-					model: "whisper-1",
-					response_format: "text"
-				});
-				console.log(transcription)
-				return transcription;
-
-			} catch (error) {
-				console.log("error in transcription", error)
-				return null;
-			}
-		}
 
 		
 		/* async function uploadVideoYoutube(video: File) {
@@ -249,7 +219,7 @@ export const actions = {
 
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
-		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: await transcribe() });
+		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: transcription });
 
 		if (supabaseError) {
 			console.log("supabaseError", supabaseError.message)
@@ -263,8 +233,27 @@ export const actions = {
 	}),
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
-		/* let recordingFile = formData.recording as File;
+		let recordingFile = formData.recording as File;
 
+		// transcription
+		async function transcribe() {
+			try {
+				const transcription = await openai.audio.transcriptions.create({
+					file: recordingFile,
+					model: "whisper-1",
+					response_format: "text"
+				});
+				console.log(transcription)
+				return transcription;
+
+			} catch (error) {
+				console.log("error in transcription", error)
+				return null;
+			}
+		}
+
+		transcription = await transcribe();
+	/* 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
 				read() {

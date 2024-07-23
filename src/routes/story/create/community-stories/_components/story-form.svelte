@@ -45,72 +45,6 @@
 
 	  let uploadVideoForm: HTMLFormElement;
 	  let createStoryForm: HTMLFormElement;
-    
-    /* async function handleUpdateStep(event) {
-      page = event.detail.page;
-      recording = event.detail.file;
-      audio = event.detail.audio;
-      $formData.recording = recording;
-      $formData.recording_link = "";
-      updateHiddenFileInput(recording);
-      updateHiddenAudioFileInput(audio);
-    } */
-  
-    $: imageInputElements = Array(3).fill(null);
-    let fileInputElement;
-    let audioFileInputElement;
-
-    async function handleImagesCaptured(event) {
-      images = event.detail.images;
-      if (images.length > 2) {
-        updateHiddenImageInputs(images);
-      }
-    }
-    
-    function updateHiddenFileInput(file) {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      fileInputElement.files = dataTransfer.files;
-    }
-
-    function updateHiddenAudioFileInput(file) {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      audioFileInputElement.files = dataTransfer.files;
-    }
-
-    function updateHiddenImageInputs(files) {
-      console.log(files)
-      files.forEach((file, index) => {
-        if (imageInputElements[index]) {
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          imageInputElements[index].files = dataTransfer.files;
-        }
-      });
-    }
-
-  /* async function handleSubmit(event) {
-
-    const data = new FormData(uploadVideoForm);
-    data.append('storyteller', $formData.storyteller)
-
-    const response = await fetch('?/uploadVideo', {
-      method: 'POST',
-      body: data
-    });
-
-    if (response.ok) {
-      console.log("eu entro aqui no return?")
-/*       const result = await response.json();
-      let res = JSON.parse(result.data)
-      $formData.recording_link = res[0];
-      console.log("recording_link", $formData.recording_link);
-      page = 4;
-    } else {
-      console.error('Upload failed');
-    }
-  } */
 
   function submitFormAndUpdatePage() {
     uploadVideoForm.requestSubmit();
@@ -148,32 +82,6 @@
           <Form.FieldErrors />
         </Form.Control>
       </Form.Field>
-      <!-- 
-      <Form.Field {form} hidden name="audio" class="text-center">
-        <Form.Control let:attrs>
-          <input hidden type="file" name="audio" bind:this={audioFileInputElement} />
-          <Form.FieldErrors />
-        </Form.Control>
-      </Form.Field>
-    
-        <Form.Field {form} hidden name="image_1" class="text-center">
-          <Form.Control let:attrs>
-              <input hidden type="file" name="image_1" bind:this={imageInputElements[0]}  />
-            <Form.FieldErrors />
-          </Form.Control>
-        </Form.Field>
-        <Form.Field {form} hidden name="image_2" class="text-center">
-          <Form.Control let:attrs>
-              <input hidden type="file" name="image_2" bind:this={imageInputElements[1]}  />
-            <Form.FieldErrors />
-          </Form.Control>
-        </Form.Field>
-        <Form.Field {form} hidden name="image_3" class="text-center">
-          <Form.Control let:attrs>
-              <input hidden type="file" name="image_3" bind:this={imageInputElements[2]}  />
-            <Form.FieldErrors />
-          </Form.Control>
-        </Form.Field> -->
     </div>
 
     <div class="page" class:show={page === 2}>
@@ -191,12 +99,10 @@
     </div>
 
     <div class="page" class:show={page === 4}>
-      <!-- <Camera bind:capturedImages={images} on:imagesCaptured={handleImagesCaptured}/> -->
       <Form.Field {form} name="images" class="text-center">
         <Form.Control let:attrs>
           <Input  {...attrs} type="file" bind:value={$formData.images[0]} capture="environment" accept="image/*" />
           <Input  {...attrs} type="file" bind:value={$formData.images[1]} capture="environment" accept="image/*" />
-          <!-- <Input  {...attrs} type="file" bind:value={$formData.images[2]} capture="environment" accept="image/*" /> -->
         </Form.Control>
       </Form.Field>
       <div class="mt-28 text-center">
@@ -210,7 +116,6 @@
     </div>
 </form>
 
-<!-- <form  method="post" action="?/uploadVideo"  bind:this={uploadVideoForm} use:enhance enctype="multipart/form-data" on:submit|preventDefault={handleSubmit}> -->
 <form  method="post" action="?/uploadVideo"  bind:this={uploadVideoForm} use:enhance enctype="multipart/form-data" on:submit|preventDefault={submitFormAndUpdatePage}>
   <div class="page" class:show={page === 3}>
     <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
@@ -239,7 +144,6 @@
           </span>
         </Form.Control>
       </Form.Field>
-      <!-- <VideoAudio {page} on:updateStep={handleUpdateStep} /> -->
     </div>
   </div>
 </form>
