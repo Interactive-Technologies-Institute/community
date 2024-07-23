@@ -117,6 +117,10 @@
     page = 4;
   }
 
+  function submitCreateStoryForm() {
+    createStoryForm.requestSubmit();
+  }
+
 </script>
 
 <style>
@@ -124,7 +128,7 @@
   .page.show { display: block; }
 </style>
 
-<form method="POST" action="?/createStory" use:enhance bind:this={createStoryForm} enctype="multipart/form-data" class="flex flex-col gap-y-10" >
+<form method="POST" action="?/createStory" use:enhance bind:this={createStoryForm} on:submit|preventDefault={submitCreateStoryForm} enctype="multipart/form-data" class="flex flex-col gap-y-10">
     <div class="page" class:show={page === 1}>
       <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
       <Form.Field {form} name="storyteller" class="text-center">
