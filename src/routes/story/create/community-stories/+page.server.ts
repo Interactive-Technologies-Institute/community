@@ -261,7 +261,7 @@ export const actions = {
 	}),
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
-		let recordingFile = formData.recording as File;
+		/* let recordingFile = formData.recording as File;
 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -334,9 +334,10 @@ export const actions = {
 			}
 		} else {
 			return fail(400, { message: 'No recording file provided' });
-		}
+		} */
+		console.log("eu entro aqui");
 
-		//recording_link = "https://www.youtube.com/watch?v="
+		recording_link = "https://www.youtube.com/watch?v="
 
 		return;
 	}
