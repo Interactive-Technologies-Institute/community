@@ -20,7 +20,7 @@ export const createStorySchema = z
 	.object({
 		storyteller: z.string().min(5, { message: 'Name is required' }).max(100),
 		recording_link: z.string().min(5, { message: 'Youtube Link is required' }).max(500).optional(),
-		recording: z.instanceof(File, { message: 'Recording is required.' }),
+		recording: z.instanceof(File, { message: 'Recording is required.' }).optional(),
 		tags: z.array(z.string()).min(1, { message: 'At least one tag is required' }),
 		role: z.enum(['community', 'technician']),
 		images: z.array(z.instanceof(File, { message: 'Images are required.' })).min(3, { message: 'At least three images are required' })

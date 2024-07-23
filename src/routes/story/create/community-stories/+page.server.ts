@@ -16,6 +16,8 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 
 const youtube = google.youtube('v3');
 
+let recording_link;
+
 //const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
 const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
 let gTokens = {};
@@ -82,21 +84,21 @@ export const load = async ({ event, locals, url }) => {
 
 
 export const actions = {
-	default: async (event) => 
+	createStory: async (event) => 
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
-		const oauth2Client = new google.auth.OAuth2(
+		console.log(recording_link)
+		/* const oauth2Client = new google.auth.OAuth2(
 			PUBLIC_YOUTUBE_CLIENT_ID,
 			PUBLIC_YOUTUBE_SECRET_KEY,
 			REDIRECT_URI
 		);
 
-		console.log(form.data)
-
+		
 		try {
 			oauth2Client.setCredentials(gTokens);
 		} catch (error) {
 			console.log("Not possible to set credentials:", error)
-		}
+		} */
 
 		const tempImages = [
 			{
@@ -116,14 +118,14 @@ export const actions = {
 		let recordingFile = form.data.recording as File;
 		//let audioFile = form.data.audio as File;
 
-		function bufferToStream(buffer: ArrayBuffer) {
+		/* function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
 				read() {
 					this.push(Buffer.from(buffer));
 					this.push(null);
 				}
 			});
-		}
+		} */
 
  		async function uploadImage(image: File): Promise<{ path: string; error: StorageError | null }> {
 			const fileExt = image.name.split('.').pop();
@@ -176,7 +178,7 @@ export const actions = {
 		}
 
 		
-		async function uploadVideoYoutube(video: File) {
+		/* async function uploadVideoYoutube(video: File) {
 			const recordingBuffer = await video.arrayBuffer();
 			const recordingStream = bufferToStream(recordingBuffer);
 			let today = new Date();
@@ -206,7 +208,7 @@ export const actions = {
 						const progress = (evt.bytesRead / form.data.recording.size) * 100;
 						/* readline.clearLine(process.stdout, 0);
 						readline.cursorTo(process.stdout, 0, null);
-						process.stdout.write(`${Math.round(progress)}% complete\n`); */
+						process.stdout.write(`${Math.round(progress)}% complete\n`); 
 					},
 				}
 			);
@@ -228,7 +230,7 @@ export const actions = {
 			}
 		} else {
 			return fail(400, { message: 'No recording file provided' });
-		} */
+		} */ 
 
 		const {
 			recording,
@@ -245,14 +247,97 @@ export const actions = {
 
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
-		.insert({ ...data, image: userImages.map(img => img.image), recording_link: "teste", user_id: userId, transcription: await transcribe() });
+		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: await transcribe() });
 
 		if (supabaseError) {
 			console.log("supabaseError", supabaseError.message)
 			setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
 			return fail(500, withFiles({ message: supabaseError.message, form }));
-		} 
+		}
 
-		return redirect(303, '/story');
+		throw redirect(303, '/story');
+
+		return;
 	}),
+	uploadVideo: async ({ request }) => {
+		const formData = Object.fromEntries(await request.formData());
+		let recordingFile = formData.recording as File;
+
+		function bufferToStream(buffer: ArrayBuffer) {
+			return new Readable({
+				read() {
+					this.push(Buffer.from(buffer));
+					this.push(null);
+				}
+			});
+		}
+
+		const oauth2Client = new google.auth.OAuth2(
+			PUBLIC_YOUTUBE_CLIENT_ID,
+			PUBLIC_YOUTUBE_SECRET_KEY,
+			REDIRECT_URI
+		);
+
+		try {
+			oauth2Client.setCredentials(gTokens);
+		} catch (error) {
+			console.log("Not possible to set credentials:", error)
+		}
+
+
+		async function uploadVideoYoutube(video: File) {
+			const recordingBuffer = await video.arrayBuffer();
+			const recordingStream = bufferToStream(recordingBuffer);
+			let today = new Date();
+
+			const res = await youtube.videos.insert(
+				{
+					auth: oauth2Client,
+					part: 'id,snippet,status',
+					notifySubscribers: false,
+					requestBody: {
+						snippet: {
+							title: 'Comunidade: ' + formData.storyteller + '_' + today.toISOString(),
+							description: 'História de ' + formData.storyteller,
+						},
+						status: {
+							privacyStatus: 'private',
+						},
+					},
+					media: {
+						body: recordingStream,
+					},
+				},
+				{
+					// Use the `onUploadProgress` event from Axios to track the
+					// number of bytes uploaded to this point.
+					onUploadProgress: evt => {
+						const progress = (evt.bytesRead / formData.recording.size) * 100;
+					},
+				}
+			);
+				
+			return {
+				success: true,
+				videoId: res.data.id
+			};
+		}  
+
+
+		if (recordingFile) {
+			try {
+				let youtubeData = await uploadVideoYoutube(recordingFile);
+				recording_link = "https://www.youtube.com/watch?v=" + youtubeData.videoId;
+			} catch (error) {
+				console.error('Error uploading video:', error);
+				return fail(500, { message: 'Failed to upload video' });
+			}
+		} else {
+			return fail(400, { message: 'No recording file provided' });
+		}
+
+		//recording_link = "https://www.youtube.com/watch?v="
+
+		return;
+	}
 };

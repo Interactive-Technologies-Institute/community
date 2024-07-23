@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { enhance } from '$app/forms';
   import { Button } from "$lib/components/ui/button";
   import * as Form from '$lib/components/ui/form';
   import * as Carousel from "$lib/components/ui/carousel/index.js";
@@ -40,6 +41,10 @@
     const { form: formData, submitting, errors } = form;
 
     $formData.role = "community";
+
+
+	  let uploadVideoForm: HTMLFormElement;
+	  let createStory: HTMLFormElement;
     
     /* async function handleUpdateStep(event) {
       page = event.detail.page;
@@ -85,6 +90,27 @@
       });
     }
 
+  async function handleSubmit(event) {
+
+    const data = new FormData(uploadVideoForm);
+    data.append('storyteller', $formData.storyteller)
+
+    const response = await fetch('?/uploadVideo', {
+      method: 'POST',
+      body: data
+    });
+
+    if (response.ok) {
+/*       const result = await response.json();
+      let res = JSON.parse(result.data)
+      $formData.recording_link = res[0];
+      console.log("recording_link", $formData.recording_link); */
+      page = 4;
+    } else {
+      console.error('Upload failed');
+    }
+  }
+
 </script>
 
 <style>
@@ -92,7 +118,7 @@
   .page.show { display: block; }
 </style>
 
-<form method="POST" enctype="multipart/form-data" class="flex flex-col gap-y-10" >
+<form method="POST" action="?/createStory" use:enhance bind:this={createStory} enctype="multipart/form-data" class="flex flex-col gap-y-10" >
     <div class="page" class:show={page === 1}>
       <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
       <Form.Field {form} name="storyteller" class="text-center">
@@ -106,13 +132,13 @@
         </Form.Control>
       </Form.Field>
 
-      <Form.Field {form} hidden name="recording" class="text-center">
+      <Form.Field {form} hidden name="recording_link" class="text-center">
         <Form.Control let:attrs>
-          <input hidden type="file" name="recording" bind:this={fileInputElement} />
+          <input hidden type="file" name="recording_link" bind:value={$formData.recording_link} />
           <Form.FieldErrors />
         </Form.Control>
       </Form.Field>
-
+      <!-- 
       <Form.Field {form} hidden name="audio" class="text-center">
         <Form.Control let:attrs>
           <input hidden type="file" name="audio" bind:this={audioFileInputElement} />
@@ -137,7 +163,7 @@
               <input hidden type="file" name="image_3" bind:this={imageInputElements[2]}  />
             <Form.FieldErrors />
           </Form.Control>
-        </Form.Field>
+        </Form.Field> -->
     </div>
 
     <div class="page" class:show={page === 2}>
@@ -152,37 +178,6 @@
           </span>
 				</Form.Control>
 			</Form.Field>
-    </div>
-
-    <div class="page" class:show={page === 3}>
-      <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
-        <Carousel.Root>
-          <Carousel.Content>
-            {#each questions as question}
-              <Carousel.Item class="w-full">
-                <div class="text-center p-2">
-                  <span class="text-sm font-semibold">{question}</span>
-                </div>
-              </Carousel.Item>
-            {/each}
-          </Carousel.Content>
-          <Carousel.Previous />
-          <Carousel.Next />
-        </Carousel.Root>
-      </div>
-      <div class="mt-4 text-center">
-        <Form.Field {form} name="recording" class="text-center">
-          <Form.Control let:attrs>
-            <label for="videoFile">Upload a video:</label>
-            <span class="flex justify-center gap-2 inline-block pt-3">
-              <Input  {...attrs} type="file" bind:value={$formData.recording} capture="environment" accept="video/*" />
-              <Form.FieldErrors />
-              <span><Button class="p-2" type="button" on:click={() => page = 4}><ArrowRight /></Button></span>
-            </span>
-          </Form.Control>
-        </Form.Field>
-        <!-- <VideoAudio {page} on:updateStep={handleUpdateStep} /> -->
-      </div>
     </div>
 
     <div class="page" class:show={page === 4}>
@@ -203,4 +198,37 @@
         </Button>
       </div>
     </div>
+</form>
+
+<form  method="post" bind:this={uploadVideoForm} use:enhance enctype="multipart/form-data" on:submit|preventDefault={handleSubmit}>
+  <div class="page" class:show={page === 3}>
+    <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
+      <Carousel.Root>
+        <Carousel.Content>
+          {#each questions as question}
+            <Carousel.Item class="w-full">
+              <div class="text-center p-2">
+                <span class="text-sm font-semibold">{question}</span>
+              </div>
+            </Carousel.Item>
+          {/each}
+        </Carousel.Content>
+        <Carousel.Previous />
+        <Carousel.Next />
+      </Carousel.Root>
+    </div>
+    <div class="mt-4 text-center">
+      <Form.Field {form} name="recording" class="text-center">
+        <Form.Control let:attrs>
+          <label for="videoFile">Upload a video:</label>
+          <span class="flex justify-center gap-2 inline-block pt-3">
+            <Input  {...attrs} type="file" bind:value={$formData.recording} capture="environment" accept="video/*" />
+            <Form.FieldErrors />
+            <span><Button class="p-2" type="submit"><ArrowRight /></Button></span>
+          </span>
+        </Form.Control>
+      </Form.Field>
+      <!-- <VideoAudio {page} on:updateStep={handleUpdateStep} /> -->
+    </div>
+  </div>
 </form>
