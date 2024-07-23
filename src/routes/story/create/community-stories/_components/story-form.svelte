@@ -101,6 +101,7 @@
     });
 
     if (response.ok) {
+      console.log("eu entro aqui no return?")
 /*       const result = await response.json();
       let res = JSON.parse(result.data)
       $formData.recording_link = res[0];
