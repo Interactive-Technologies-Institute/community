@@ -44,7 +44,7 @@
 
 
 	  let uploadVideoForm: HTMLFormElement;
-	  let createStory: HTMLFormElement;
+	  let createStoryForm: HTMLFormElement;
     
     /* async function handleUpdateStep(event) {
       page = event.detail.page;
@@ -90,7 +90,7 @@
       });
     }
 
-  async function handleSubmit(event) {
+  /* async function handleSubmit(event) {
 
     const data = new FormData(uploadVideoForm);
     data.append('storyteller', $formData.storyteller)
@@ -105,11 +105,16 @@
 /*       const result = await response.json();
       let res = JSON.parse(result.data)
       $formData.recording_link = res[0];
-      console.log("recording_link", $formData.recording_link); */
+      console.log("recording_link", $formData.recording_link);
       page = 4;
     } else {
       console.error('Upload failed');
     }
+  } */
+
+  function submitFormAndUpdatePage() {
+    uploadVideoForm.requestSubmit();
+    page = 4;
   }
 
 </script>
@@ -119,7 +124,7 @@
   .page.show { display: block; }
 </style>
 
-<form method="POST" action="?/createStory" use:enhance bind:this={createStory} enctype="multipart/form-data" class="flex flex-col gap-y-10" >
+<form method="POST" action="?/createStory" use:enhance bind:this={createStoryForm} enctype="multipart/form-data" class="flex flex-col gap-y-10" >
     <div class="page" class:show={page === 1}>
       <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
       <Form.Field {form} name="storyteller" class="text-center">
@@ -201,7 +206,8 @@
     </div>
 </form>
 
-<form  method="post" bind:this={uploadVideoForm} use:enhance enctype="multipart/form-data" on:submit|preventDefault={handleSubmit}>
+<!-- <form  method="post" action="?/uploadVideo"  bind:this={uploadVideoForm} use:enhance enctype="multipart/form-data" on:submit|preventDefault={handleSubmit}> -->
+<form  method="post" action="?/uploadVideo"  bind:this={uploadVideoForm} use:enhance enctype="multipart/form-data" on:submit|preventDefault={submitFormAndUpdatePage}>
   <div class="page" class:show={page === 3}>
     <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
       <Carousel.Root>

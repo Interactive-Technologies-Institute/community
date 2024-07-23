@@ -84,7 +84,7 @@ export const load = async ({ event, locals, url }) => {
 
 
 export const actions = {
-	createStory: async (event) => 
+	createStory: async (event) =>
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
 		console.log(recording_link)
 		/* const oauth2Client = new google.auth.OAuth2(
@@ -339,6 +339,6 @@ export const actions = {
 
 		recording_link = "https://www.youtube.com/watch?v="
 
-		return;
+		return { status: 200 };
 	}
 };
