@@ -9,7 +9,6 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { v4 as uuidv4 } from 'uuid';
 import { google } from 'googleapis';
 import { Readable } from 'stream';
-//import readline from 'readline';
 import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
@@ -17,7 +16,7 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 const youtube = google.youtube('v3');
 
 let recording_link;
-let transcription;
+let transcription = "";
 
 //const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
 const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
@@ -236,7 +235,7 @@ export const actions = {
 		let recordingFile = formData.recording as File;
 
 		// transcription
-		async function transcribe() {
+		/* async function transcribe() {
 			try {
 				const transcription = await openai.audio.transcriptions.create({
 					file: recordingFile,
@@ -252,8 +251,8 @@ export const actions = {
 			}
 		}
 
-		transcription = await transcribe();
-	/* 
+		transcription = await transcribe(); */
+	 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
 				read() {
@@ -325,10 +324,7 @@ export const actions = {
 			}
 		} else {
 			return fail(400, { message: 'No recording file provided' });
-		} */
-		console.log("eu entro aqui");
-
-		recording_link = "https://www.youtube.com/watch?v="
+		} 
 
 		return { status: 200 };
 	}
