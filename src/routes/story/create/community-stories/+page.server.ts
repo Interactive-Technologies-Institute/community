@@ -434,8 +434,8 @@ const chunkSizeMB = 25; */
 		.catch(error => {
 				console.error('Error during transcription process:', error);
 		}); */
-		// transcription = await transcribe(audioFile);
-		//console.log(transcription)
+		transcription = await transcribe(audioFile);
+		console.log(transcription)
 	}
 
 	recording_link = "https://www.youtube.com/watch?v=";
