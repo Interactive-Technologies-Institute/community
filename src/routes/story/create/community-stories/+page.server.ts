@@ -1,5 +1,5 @@
 import { createStorySchema } from '$lib/schemas/story';
-import { PUBLIC_YOUTUBE_CLIENT_ID, PUBLIC_YOUTUBE_SECRET_KEY, PUBLIC_OPENAI_API_KEY } from '$env/static/public';
+import { PUBLIC_YOUTUBE_CLIENT_ID, PUBLIC_YOUTUBE_SECRET_KEY, PUBLIC_OPENAI_API_KEY, PUBLIC_CLOUDINARY_API_KEY, PUBLIC_CLOUDINARY_API_SECRET, PUBLIC_CLOUDINARY_CLOUD_NAME } from '$env/static/public';
 import { handleFormAction, handleSignInRedirect } from '@/utils';
 import type { StorageError } from '@supabase/storage-js';
 import { error, fail, redirect } from '@sveltejs/kit';
@@ -10,6 +10,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { google } from 'googleapis';
 import { Readable } from 'stream';
 import OpenAI from "openai";
+import { v2 as cloudinary } from 'cloudinary';
+import axios from 'axios';
+// import fs from 'fs';
+
+// Configure Cloudinary with your credentials
+cloudinary.config({
+  cloud_name: PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: PUBLIC_CLOUDINARY_API_KEY,
+  api_secret: PUBLIC_CLOUDINARY_API_SECRET
+});
 
 const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 
@@ -235,14 +245,14 @@ export const actions = {
 		let recordingFile = formData.recording as File;
 
 		// transcription
-		/* async function transcribe() {
+		async function transcribe(recordingFile) {
 			try {
 				const transcription = await openai.audio.transcriptions.create({
 					file: recordingFile,
 					model: "whisper-1",
 					response_format: "text"
 				});
-				console.log(transcription)
+
 				return transcription;
 
 			} catch (error) {
@@ -250,8 +260,6 @@ export const actions = {
 				return null;
 			}
 		}
-
-		transcription = await transcribe(); */
 	 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -262,7 +270,7 @@ export const actions = {
 			});
 		}
 
-		const oauth2Client = new google.auth.OAuth2(
+		/* const oauth2Client = new google.auth.OAuth2(
 			PUBLIC_YOUTUBE_CLIENT_ID,
 			PUBLIC_YOUTUBE_SECRET_KEY,
 			REDIRECT_URI
@@ -324,7 +332,113 @@ export const actions = {
 			}
 		} else {
 			return fail(400, { message: 'No recording file provided' });
-		} 
+		} */
+
+
+	// Function to upload video and convert to audio
+	async function videoToAudio(videoFile) {
+		try {
+			// Convert File to stream if needed
+			const buffer = await videoFile.arrayBuffer();
+			const stream = bufferToStream(buffer);
+
+			// Upload video to Cloudinary
+			const uploadResult = await new Promise((resolve, reject) => {
+				const uploadStream = cloudinary.uploader.upload_stream(
+					{
+						resource_type: 'video',
+						eager: [{ format: 'mp3' }],
+						eager_async: true,
+					},
+					(error, result) => {
+						if (error) return reject(error);
+						resolve(result);
+					}
+				);
+
+				stream.pipe(uploadStream);
+			});
+
+			if (!uploadResult) throw new Error('Failed to upload video to Cloudinary');
+
+			// Fetch the audio data as a buffer
+			const response = await axios({
+				url: uploadResult.secure_url,
+				method: 'GET',
+				responseType: 'arraybuffer'
+			});
+
+			// Create a File-like object
+			const audioBuffer = response.data;
+			const audioFile = new File([audioBuffer], 'output_audio.mp3', { type: 'audio/mpeg' });
+
+			console.log('Audio File:', audioFile);
+			return audioFile;
+		} catch (error) {
+			console.error('Error converting video to audio:', error);
+		}
+	}
+
+/* 
+async function transcribeChunk(blobChunk) {
+	try {
+			const transcription = await openai.audio.transcriptions.create({
+					file: blobChunk,
+					model: "whisper-1",
+					response_format: "text"
+			});
+
+			return transcription;
+	} catch (error) {
+			console.error("Error in transcription:", error);
+			return null;
+	}
+}
+
+async function transcribeFile(file, chunkSizeMB) {
+	const chunkSize = chunkSizeMB * 1024 * 1024;
+	const totalChunks = Math.ceil(file.size / chunkSize);
+	let fullTranscription = '';
+
+	for (let i = 0; i < totalChunks; i++) {
+			const start = i * chunkSize;
+			const end = Math.min(start + chunkSize, file.size);
+			const chunk = file.slice(start, end);
+
+			const transcription = await transcribeChunk(chunk);
+			if (transcription) {
+					fullTranscription += transcription;
+			} else {
+					console.error(`Failed to transcribe chunk ${i}`);
+			}
+	}
+
+	return fullTranscription;
+} */
+
+// Usage example
+/* const file = new File([/* your file data ], "large-audio-file.mp3");
+const chunkSizeMB = 25; */
+
+	// Example usage: assume videoFile is a File object obtained from an upload or other source
+	let audioFile = await videoToAudio(recordingFile);
+
+
+
+	if(audioFile) {
+		/* transcribeFile(audioFile, chunkSizeMB)
+		.then(fullTranscription => {
+				console.log('Full Transcription:', fullTranscription);
+				transcription = fullTranscription;
+		})
+		.catch(error => {
+				console.error('Error during transcription process:', error);
+		}); */
+		// transcription = await transcribe(audioFile);
+		//console.log(transcription)
+	}
+
+	recording_link = "https://www.youtube.com/watch?v=";
 
 		return { status: 200 };
 	}

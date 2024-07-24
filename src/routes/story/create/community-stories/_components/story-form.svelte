@@ -47,6 +47,7 @@
 	  let createStoryForm: HTMLFormElement;
 
   function submitFormAndUpdatePage() {
+    // adicionar storyteller
     uploadVideoForm.requestSubmit();
     page = 4;
   }
