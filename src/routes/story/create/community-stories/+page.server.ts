@@ -26,7 +26,7 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 const youtube = google.youtube('v3');
 
 let recording_link;
-let transcription = "";
+let audio_file;
 
 //const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
 const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
@@ -124,6 +124,23 @@ export const actions = {
 				}
 			});
 		} */
+
+		// transcription
+		async function transcribe() {
+			try {
+				const transcription = await openai.audio.transcriptions.create({
+					file: audio_file,
+					model: "whisper-1",
+					response_format: "text"
+				});
+
+				return transcription;
+
+			} catch (error) {
+				console.log("error in transcription", error)
+				return null;
+			}
+		}
 
  		async function uploadImage(image: File): Promise<{ path: string; error: StorageError | null }> {
 			const fileExt = image.name.split('.').pop();
@@ -228,7 +245,7 @@ export const actions = {
 
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
-		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: transcription });
+		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: await transcribe() });
 
 		if (supabaseError) {
 			console.log("supabaseError", supabaseError.message)
@@ -243,23 +260,6 @@ export const actions = {
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
 		let recordingFile = formData.recording as File;
-
-		// transcription
-		async function transcribe(recordingFile) {
-			try {
-				const transcription = await openai.audio.transcriptions.create({
-					file: recordingFile,
-					model: "whisper-1",
-					response_format: "text"
-				});
-
-				return transcription;
-
-			} catch (error) {
-				console.log("error in transcription", error)
-				return null;
-			}
-		}
 	 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -421,22 +421,22 @@ async function transcribeFile(file, chunkSizeMB) {
 const chunkSizeMB = 25; */
 
 	// Example usage: assume videoFile is a File object obtained from an upload or other source
-	let audioFile = await videoToAudio(recordingFile);
+	audio_file = await videoToAudio(recordingFile);
 
 
 
-	if(audioFile) {
-		/* transcribeFile(audioFile, chunkSizeMB)
+	/*if(audioFile) {
+		 transcribeFile(audioFile, chunkSizeMB)
 		.then(fullTranscription => {
 				console.log('Full Transcription:', fullTranscription);
 				transcription = fullTranscription;
 		})
 		.catch(error => {
 				console.error('Error during transcription process:', error);
-		}); */
-		transcription = await transcribe(audioFile);
-		console.log(transcription)
-	}
+		}); 
+		//transcription = await transcribe(audioFile);
+		//console.log(transcription)
+	}*/
 
 	recording_link = "https://www.youtube.com/watch?v=";
 
