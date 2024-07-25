@@ -243,6 +243,8 @@ export const actions = {
 			...data
 		} = form.data;
 
+		console.log("audio", audio_file)
+
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
 		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: await transcribe() });
