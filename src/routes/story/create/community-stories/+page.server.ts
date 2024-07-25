@@ -28,8 +28,8 @@ const youtube = google.youtube('v3');
 let recording_link;
 let audio_file;
 
-const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
-//const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
+//const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
+const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
 let gTokens = {};
 
 export const load = async ({ event, locals, url }) => {
@@ -423,6 +423,7 @@ async function transcribeFile(file, chunkSizeMB) {
 const chunkSizeMB = 25; */
 
 	// Example usage: assume videoFile is a File object obtained from an upload or other source
+	console.log("recordingFile", recordingFile)
 	audio_file = await videoToAudio(recordingFile);
 
 		// Assuming 'fileBuffer' is the buffer containing the file's data
