@@ -425,6 +425,19 @@ const chunkSizeMB = 25; */
 	// Example usage: assume videoFile is a File object obtained from an upload or other source
 	audio_file = await videoToAudio(recordingFile);
 
+		// Assuming 'fileBuffer' is the buffer containing the file's data
+	const audioBuffer = await audio_file.arrayBuffer();
+	const fileBuffer = Buffer.from(audioBuffer);
+	const filename = 'teste.mp4'; // The desired filename on the server
+
+	fs.writeFile(filename, fileBuffer, (err) => {
+		if (err) {
+			console.error('Error saving the file:', err);
+		} else {
+			console.log('File saved successfully.');
+		}
+	});
+
 
 
 	/*if(audioFile) {
