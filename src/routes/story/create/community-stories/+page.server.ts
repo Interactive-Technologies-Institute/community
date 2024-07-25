@@ -114,7 +114,7 @@ export const actions = {
 		]
 		
 		let recordingFile = form.data.recording as File;
-		//let audioFile = form.data.audio as File;
+		audioFile = audio_file as File;
 
 		/* function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
