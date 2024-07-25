@@ -114,7 +114,7 @@ export const actions = {
 		]
 		
 		let recordingFile = form.data.recording as File;
-		audioFile = audio_file as File;
+		let audioFile = audio_file as File;
 
 		/* function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -129,7 +129,7 @@ export const actions = {
 		async function transcribe() {
 			try {
 				const transcription = await openai.audio.transcriptions.create({
-					file: audio_file,
+					file: audioFile,
 					model: "whisper-1",
 					response_format: "text"
 				});
