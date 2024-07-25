@@ -372,7 +372,7 @@ export const actions = {
 
 			// Create a File-like object
 			const audioBuffer = response.data;
-			const audioFile = new File([audioBuffer], 'output_audio.mp3', { type: 'audio/mpeg' });
+			const audioFile = new File([audioBuffer], 'output_audio.mp3', { type: 'audio/mp3' });
 
 			console.log('Audio File:', audioFile);
 			return audioFile;
