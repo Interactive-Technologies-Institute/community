@@ -432,7 +432,7 @@ const chunkSizeMB = 25; */
 
 	// Example usage: assume videoFile is a File object obtained from an upload or other source
 	console.log("recordingFile", recordingFile)
-	video_file = await videoToAudio(recordingFile, "mp4");
+	let video_file = await videoToAudio(recordingFile, "mp4");
 	audio_file = await videoToAudio(video_file, "mp3");
 
 		// Assuming 'fileBuffer' is the buffer containing the file's data
