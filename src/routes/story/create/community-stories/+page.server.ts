@@ -349,7 +349,7 @@ export const actions = {
 				const uploadStream = cloudinary.uploader.upload_stream(
 					{
 						resource_type: 'video',
-						eager: [{ format: 'mpeg' }],
+						eager: [{ format: 'mp4' }],
 						eager_async: true,
 					},
 					(error, result) => {
@@ -372,7 +372,7 @@ export const actions = {
 
 			// Create a File-like object
 			const audioBuffer = response.data;
-			const audioFile = new File([audioBuffer], 'audio_file.mpeg', { type: 'audio/mpeg' });
+			const audioFile = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
 
 			console.log('Audio File:', audioFile);
 			return audioFile;
