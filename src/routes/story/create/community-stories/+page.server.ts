@@ -12,7 +12,7 @@ import { Readable } from 'stream';
 import OpenAI from "openai";
 import { v2 as cloudinary } from 'cloudinary';
 import axios from 'axios';
-// import fs from 'fs';
+import fs from 'fs';
 
 // Configure Cloudinary with your credentials
 cloudinary.config({
@@ -28,8 +28,8 @@ const youtube = google.youtube('v3');
 let recording_link;
 let audio_file;
 
-//const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
-const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
+const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
+//const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
 let gTokens = {};
 
 export const load = async ({ event, locals, url }) => {
@@ -349,7 +349,7 @@ export const actions = {
 				const uploadStream = cloudinary.uploader.upload_stream(
 					{
 						resource_type: 'video',
-						eager: [{ format: 'mp4' }],
+						eager: [{ format: 'wav' }],
 						eager_async: true,
 					},
 					(error, result) => {
@@ -372,7 +372,7 @@ export const actions = {
 
 			// Create a File-like object
 			const audioBuffer = response.data;
-			const audioFile = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
+			const audioFile = new File([audioBuffer], 'audio_file.wav', { type: 'audio/wav' });
 
 			console.log('Audio File:', audioFile);
 			return audioFile;
@@ -428,7 +428,7 @@ const chunkSizeMB = 25; */
 		// Assuming 'fileBuffer' is the buffer containing the file's data
 	const audioBuffer = await audio_file.arrayBuffer();
 	const fileBuffer = Buffer.from(audioBuffer);
-	const filename = 'teste.mp4'; // The desired filename on the server
+	const filename = 'teste.wav'; // The desired filename on the server
 
 	fs.writeFile(filename, fileBuffer, (err) => {
 		if (err) {
