@@ -338,7 +338,7 @@ export const actions = {
 
 
 	// Function to upload video and convert to audio
-	async function videoToAudio(videoFile) {
+	async function videoToAudio(videoFile, format) {
 		try {
 			// Convert File to stream if needed
 			const buffer = await videoFile.arrayBuffer();
@@ -349,7 +349,7 @@ export const actions = {
 				const uploadStream = cloudinary.uploader.upload_stream(
 					{
 						resource_type: 'video',
-						eager: [{ format: 'wav' }],
+						eager: [{ format: format }],
 						eager_async: true,
 					},
 					(error, result) => {
@@ -370,9 +370,17 @@ export const actions = {
 				responseType: 'arraybuffer'
 			});
 
+			let audioBuffer;
+			let audioFile;
+
 			// Create a File-like object
-			const audioBuffer = response.data;
-			const audioFile = new File([audioBuffer], 'audio_file.wav', { type: 'audio/wav' });
+			if (format === "mp3") {
+				audioBuffer = response.data;
+				audioFile = new File([audioBuffer], 'audio_file.wav', { type: 'audio/wav' });
+			} else {
+				audioBuffer = response.data;
+				audioFile = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
+			}
 
 			console.log('Audio File:', audioFile);
 			return audioFile;
@@ -424,10 +432,11 @@ const chunkSizeMB = 25; */
 
 	// Example usage: assume videoFile is a File object obtained from an upload or other source
 	console.log("recordingFile", recordingFile)
-	audio_file = await videoToAudio(recordingFile);
+	video_file = await videoToAudio(recordingFile, "mp4");
+	audio_file = await videoToAudio(video_file, "mp3");
 
 		// Assuming 'fileBuffer' is the buffer containing the file's data
-	const audioBuffer = await audio_file.arrayBuffer();
+	/* const audioBuffer = await audio_file.arrayBuffer();
 	const fileBuffer = Buffer.from(audioBuffer);
 	const filename = 'teste.wav'; // The desired filename on the server
 
@@ -438,7 +447,7 @@ const chunkSizeMB = 25; */
 			console.log('File saved successfully.');
 		}
 	});
-
+ */
 
 
 	/*if(audioFile) {
