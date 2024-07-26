@@ -375,7 +375,7 @@ export const actions = {
 			let audioFile;
 
 			// Create a File-like object
-			if (format === "mp3") {
+			if (format === "wav") {
 				audioBuffer = response.data;
 				audioFile = new File([audioBuffer], 'audio_file.wav', { type: 'audio/wav' });
 			} else {
@@ -450,8 +450,8 @@ const chunkSizeMB = 25; */
 	});
  */
 	
-	//audio_file = await videoToAudio(recordingFile, "mp3");
-	audio_file = recordingFile;
+	let video_file = await videoToAudio(recordingFile, "mp4");
+	audio_file = await videoToAudio(video_file, "wav");
 
 	/* if(audioFile) {
 		 transcribeFile(audioFile, chunkSizeMB)
