@@ -98,7 +98,7 @@ export const actions = {
 	createStory: async (event) =>
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
 		console.log("eu entro aqui nos create story?")
-		console.log("form do createstory" form)
+		console.log("form do createstory", form)
 		const tempImages = [
 			{
 				imageUrl: "",
@@ -385,7 +385,7 @@ export const actions = {
 			}
 
 			console.log('Audio File:', audioFileTemp);
-			
+
 			return audioFileTemp;
 
 		} catch (error) {
