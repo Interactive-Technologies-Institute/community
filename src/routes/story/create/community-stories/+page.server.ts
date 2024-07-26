@@ -262,6 +262,7 @@ export const actions = {
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
 		let recordingFile = formData.recording as File;
+		console.log(formData)
 	 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -338,7 +339,7 @@ export const actions = {
 
 
 	// Function to upload video and convert to audio
-	async function videoToAudio(videoFile, format) {
+	/* async function videoToAudio(videoFile, format) {
 		try {
 			// Convert File to stream if needed
 			const buffer = await videoFile.arrayBuffer();
@@ -387,7 +388,7 @@ export const actions = {
 		} catch (error) {
 			console.error('Error converting video to audio:', error);
 		}
-	}
+	} */
 
 /* 
 async function transcribeChunk(blobChunk) {
@@ -431,9 +432,9 @@ async function transcribeFile(file, chunkSizeMB) {
 const chunkSizeMB = 25; */
 
 	// Example usage: assume videoFile is a File object obtained from an upload or other source
-	console.log("recordingFile", recordingFile)
+	/* console.log("recordingFile", recordingFile)
 	let video_file = await videoToAudio(recordingFile, "mp4");
-	audio_file = await videoToAudio(video_file, "mp3");
+	audio_file = await videoToAudio(video_file, "mp3"); */
 
 		// Assuming 'fileBuffer' is the buffer containing the file's data
 	/* const audioBuffer = await audio_file.arrayBuffer();

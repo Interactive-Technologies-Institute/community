@@ -29,6 +29,9 @@
   let recording;
   let audio;
   let images = [];
+  let videoInput: HTMLInputElement;
+  let audioBlob: Blob;
+  let audioFile: File;
   
   export let data: SuperValidated<Infer<CreateStorySchema>>;
     
@@ -41,6 +44,49 @@
     const { form: formData, submitting, errors } = form;
 
     $formData.role = "community";
+
+    function extractAudio(file) {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.src = url;
+
+      video.addEventListener('loadedmetadata', () => {
+        const audioContext = new AudioContext();
+        const source = audioContext.createMediaElementSource(video);
+        const destination = audioContext.createMediaStreamDestination();
+        source.connect(destination);
+        source.connect(audioContext.destination);
+
+        const recorder = new MediaRecorder(destination.stream);
+        let chunks = [];
+
+        recorder.ondataavailable = event => {
+          chunks.push(event.data);
+        };
+
+        recorder.onstop = () => {
+          audioBlob = new Blob(chunks, { type: 'audio/wav' });
+          audioFile = new File([audioBlob], 'audio_file.wav', { type: 'audio/wav' });
+          // Now you have the audio blob, you can send it to the server
+          //sendAudioToServer(audioBlob);
+        };
+
+        recorder.start();
+        video.play();
+
+        // Stop recording after the video duration
+        setTimeout(() => {
+          recorder.stop();
+        }, video.duration * 1000);
+      });
+    }
+
+    function handleVideoChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        extractAudio(file);
+      }
+    }
 
 
 	  let uploadVideoForm: HTMLFormElement;
@@ -139,7 +185,8 @@
         <Form.Control let:attrs>
           <label for="videoFile">Upload a video:</label>
           <span class="flex justify-center gap-2 inline-block pt-3">
-            <Input  {...attrs} type="file" bind:value={$formData.recording} capture="environment" accept="video/*" />
+            <Input  {...attrs} type="file" bind:value={$formData.recording} capture="environment" accept="video/*" on:change={handleVideoChange}/>
+            <Input hidden {...attrs} type="file" bind:value={audioFile} accept="audio/*" />
             <Form.FieldErrors />
             <span><Button class="p-2" type="submit"><ArrowRight /></Button></span>
           </span>
