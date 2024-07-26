@@ -262,7 +262,7 @@ export const actions = {
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
 		let recordingFile = formData.recording as File;
-		console.log(formData)
+		console.log("recebo algo", formData)
 	 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -450,7 +450,8 @@ const chunkSizeMB = 25; */
 	});
  */
 	
-	audio_file = await videoToAudio(recordingFile, "mp3");
+	//audio_file = await videoToAudio(recordingFile, "mp3");
+	audio_file = recordingFile;
 
 	/* if(audioFile) {
 		 transcribeFile(audioFile, chunkSizeMB)
