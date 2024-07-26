@@ -45,7 +45,7 @@
 
     $formData.role = "community";
 
-    function extractAudio(file) {
+    /* function extractAudio(file) {
       const url = URL.createObjectURL(file);
       const video = document.createElement('video');
       video.src = url;
@@ -86,7 +86,7 @@
       if (file) {
         extractAudio(file);
       }
-    }
+    } */
 
 
 	  let uploadVideoForm: HTMLFormElement;
@@ -185,8 +185,7 @@
         <Form.Control let:attrs>
           <label for="videoFile">Upload a video:</label>
           <span class="flex justify-center gap-2 inline-block pt-3">
-            <Input  {...attrs} type="file" bind:value={$formData.recording} capture="environment" accept="video/*" on:change={handleVideoChange}/>
-            <Input hidden {...attrs} type="file" bind:value={audioFile} accept="audio/*" />
+            <Input  {...attrs} type="file" bind:value={$formData.recording} capture accept="video/*" />
             <Form.FieldErrors />
             <span><Button class="p-2" type="submit"><ArrowRight /></Button></span>
           </span>

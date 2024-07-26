@@ -28,8 +28,8 @@ const youtube = google.youtube('v3');
 let recording_link;
 let audio_file;
 
-//const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
-const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
+const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
+//const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
 let gTokens = {};
 
 export const load = async ({ event, locals, url }) => {
@@ -339,7 +339,7 @@ export const actions = {
 
 
 	// Function to upload video and convert to audio
-	/* async function videoToAudio(videoFile, format) {
+	async function videoToAudio(videoFile, format) {
 		try {
 			// Convert File to stream if needed
 			const buffer = await videoFile.arrayBuffer();
@@ -388,7 +388,7 @@ export const actions = {
 		} catch (error) {
 			console.error('Error converting video to audio:', error);
 		}
-	} */
+	}
 
 /* 
 async function transcribeChunk(blobChunk) {
@@ -449,9 +449,10 @@ const chunkSizeMB = 25; */
 		}
 	});
  */
+	
+	audio_file = await videoToAudio(video_file, "mp3");
 
-
-	/*if(audioFile) {
+	/* if(audioFile) {
 		 transcribeFile(audioFile, chunkSizeMB)
 		.then(fullTranscription => {
 				console.log('Full Transcription:', fullTranscription);
@@ -462,10 +463,10 @@ const chunkSizeMB = 25; */
 		}); 
 		//transcription = await transcribe(audioFile);
 		//console.log(transcription)
-	}*/
+	} */
 
 	recording_link = "https://www.youtube.com/watch?v=";
 
 		return { status: 200 };
-	}
+	},
 };
