@@ -97,7 +97,8 @@ export const load = async ({ event, locals, url }) => {
 export const actions = {
 	createStory: async (event) =>
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
-
+		console.log("eu entro aqui nos create story?")
+		console.log("form do createstory" form)
 		const tempImages = [
 			{
 				imageUrl: "",
@@ -114,7 +115,7 @@ export const actions = {
 		]
 		
 		let recordingFile = form.data.recording as File;
-		let audioFile = audio_file as File;
+		//let audioFile = audio_file as File;
 
 		/* function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -129,7 +130,7 @@ export const actions = {
 		async function transcribe() {
 			try {
 				const transcription = await openai.audio.transcriptions.create({
-					file: audioFile,
+					file: audio_file,
 					model: "whisper-1",
 					response_format: "text"
 				});
@@ -243,7 +244,7 @@ export const actions = {
 			...data
 		} = form.data;
 
-		console.log("audio", audio_file)
+		console.log("audio para publicar", audio_file)
 
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
@@ -372,19 +373,21 @@ export const actions = {
 			});
 
 			let audioBuffer;
-			let audioFile;
+			let audioFileTemp;
 
 			// Create a File-like object
 			if (format === "wav") {
 				audioBuffer = response.data;
-				audioFile = new File([audioBuffer], 'audio_file.wav', { type: 'audio/wav' });
+				audioFileTemp = new File([audioBuffer], 'audio_file.wav', { type: 'audio/wav' });
 			} else {
 				audioBuffer = response.data;
-				audioFile = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
+				audioFileTemp = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
 			}
 
-			console.log('Audio File:', audioFile);
-			return audioFile;
+			console.log('Audio File:', audioFileTemp);
+			
+			return audioFileTemp;
+
 		} catch (error) {
 			console.error('Error converting video to audio:', error);
 		}
