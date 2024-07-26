@@ -450,7 +450,7 @@ const chunkSizeMB = 25; */
 	});
  */
 	
-	audio_file = await videoToAudio(video_file, "mp3");
+	audio_file = await videoToAudio(recordingFile, "mp3");
 
 	/* if(audioFile) {
 		 transcribeFile(audioFile, chunkSizeMB)
