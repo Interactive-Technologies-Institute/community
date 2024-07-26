@@ -28,8 +28,8 @@ const youtube = google.youtube('v3');
 let recording_link;
 let audio_file;
 
-const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
-//const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
+//const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
+const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
 let gTokens = {};
 
 export const load = async ({ event, locals, url }) => {
