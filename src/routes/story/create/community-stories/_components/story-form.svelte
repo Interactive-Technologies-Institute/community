@@ -185,7 +185,7 @@
         <Form.Control let:attrs>
           <label for="videoFile">Upload a video:</label>
           <span class="flex justify-center gap-2 inline-block pt-3">
-            <Input  {...attrs} type="file" bind:value={$formData.recording} capture accept="video/*" />
+            <Input  {...attrs} type="file" bind:value={$formData.recording} accept="video/*" />
             <Form.FieldErrors />
             <span><Button class="p-2" type="submit"><ArrowRight /></Button></span>
           </span>
