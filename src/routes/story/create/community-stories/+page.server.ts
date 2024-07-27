@@ -492,6 +492,6 @@ ffmpeg(videoStream)
 
 	//recording_link = "https://www.youtube.com/watch?v=";
 
-		return { status: 200 };
+	return { success: true };
 	},
 };
