@@ -27,8 +27,7 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 
 const youtube = google.youtube('v3');
 
-let recording_link;
-let audio_file;
+let recordingFile;
 
 //const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
 const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
@@ -116,22 +115,71 @@ export const actions = {
 			},
 		]
 		
-		let recordingFile = form.data.recording as File;
-		console.log("audio antes do file", audio_file)
-		let audioFile = audio_file as File;
-		console.log("audio dps do file", audioFile)
+		recordingFile = recordingFile as File;
 
-		/* function bufferToStream(buffer: ArrayBuffer) {
+		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
 				read() {
 					this.push(Buffer.from(buffer));
 					this.push(null);
 				}
 			});
-		} */
+		} 
+
+		// Function to upload video and convert to audio
+	async function videoToAudio(videoFile, format) {
+		try {
+			// Convert File to stream if needed
+			const buffer = await videoFile.arrayBuffer();
+			const stream = bufferToStream(buffer);
+
+			// Upload video to Cloudinary
+			const uploadResult = await new Promise((resolve, reject) => {
+				const uploadStream = cloudinary.uploader.upload_stream(
+					{
+						resource_type: 'video',
+						format: 'mp4',
+						eager: [{ format: format }],
+						eager_async: true,
+					},
+					(error, result) => {
+						if (error) return reject(error);
+						resolve(result);
+					}
+				);
+
+				stream.pipe(uploadStream);
+			});
+
+			if (!uploadResult) throw new Error('Failed to upload video to Cloudinary');
+
+			return uploadResult.secure_url; 
+
+		} catch (error) {
+			console.error('Error converting video to audio:', error);
+		}
+	}
+
+	async function getVideo(url) {
+		try {
+			// Fetch the audio data as a buffer
+			const response = await axios({
+				url: url,
+				method: 'GET',
+				responseType: 'arraybuffer'
+			});
+
+			let audioBuffer = response.data;
+			let audioFileTemp = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
+
+			return audioFileTemp;
+		} catch (error) {
+			console.error('Error getting video:', error);
+		}
+	}
 
 		// transcription
-		async function transcribe() {
+		async function transcribe(audioFile) {
 			try {
 				const transcription = await openai.audio.transcriptions.create({
 					file: audioFile,
@@ -233,7 +281,11 @@ export const actions = {
 			}
 		} else {
 			return fail(400, { message: 'No recording file provided' });
-		} */ 
+		} */
+
+		let video_url = await videoToAudio(recordingFile, "mp4");
+		let audio_file = await getVideo(video_url)
+		let recording_link = "https://www.youtube.com/watch?v=";
 
 		const {
 			recording,
@@ -245,7 +297,7 @@ export const actions = {
 
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
-		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: await transcribe() });
+		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: await transcribe(audio_file) });
 
 		if (supabaseError) {
 			console.log("supabaseError", supabaseError.message)
@@ -259,17 +311,8 @@ export const actions = {
 	}),
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
-		let recordingFile = formData.recording as File;
+		recordingFile = formData.recording as File;
 		console.log("recebo algo", formData)
-	 
-		function bufferToStream(buffer: ArrayBuffer) {
-			return new Readable({
-				read() {
-					this.push(Buffer.from(buffer));
-					this.push(null);
-				}
-			});
-		}
 
 		/* const oauth2Client = new google.auth.OAuth2(
 			PUBLIC_YOUTUBE_CLIENT_ID,
@@ -335,100 +378,6 @@ export const actions = {
 			return fail(400, { message: 'No recording file provided' });
 		} */
 
-
-	// Function to upload video and convert to audio
-	async function videoToAudio(videoFile, format) {
-		try {
-			// Convert File to stream if needed
-			const buffer = await videoFile.arrayBuffer();
-			const stream = bufferToStream(buffer);
-
-			// Upload video to Cloudinary
-			const uploadResult = await new Promise((resolve, reject) => {
-				const uploadStream = cloudinary.uploader.upload_stream(
-					{
-						resource_type: 'video',
-						format: 'mp4',
-						eager: [{ format: format }],
-						eager_async: true,
-					},
-					(error, result) => {
-						if (error) return reject(error);
-						resolve(result);
-					}
-				);
-
-				stream.pipe(uploadStream);
-			});
-
-			if (!uploadResult) throw new Error('Failed to upload video to Cloudinary');
-
-			/* const convertVideo = await new Promise ((resolve, reject) => {
-				const transformationResult = cloudinary.video(uploadResult.public_id, {fetch_format: "mp4"})
-			}); */
-
-			/* let new_video = cloudinary.video(uploadResult.public_id, {fetch_format: "mp4"})
-			console.log(new_video) */
-
-			// Fetch the audio data as a buffer
-			const response = await axios({
-				url: uploadResult.secure_url,
-				method: 'GET',
-				responseType: 'arraybuffer'
-			});
-
-			let audioBuffer = response.data;
-			let audioFileTemp = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
-
-			//console.log(convertVideo)
-
-			/* cloudinary.uploader
-			.upload(buffer, { 
-				use_filename: true})
-			.then(result=>console.log("OLHA O RESULTADOOO", result)); */
-
-			/* let new_video = cloudinary.video(stream, {fetch_format: "mp4"})
-			console.log(new_video) */
-
-			/* if (!uploadResult) throw new Error('Failed to upload video to Cloudinary');
-
-			const resource = await cloudinary.api.resource(uploadResult.public_id, {
-				resource_type: 'video'
-			});
-	
-			console.log('File Format:', resource.format); // e.g., 'mp4'
-			console.log('Audio Codec:', resource.audio.codec); // e.g., 'aac'
-			console.log('Container Format:', resource.resource_type); // 'video' generally for Cloudinary audio files
-			console.log('Duration:', resource.duration); // in seconds
-
-			// Fetch the audio data as a buffer
-			const response = await axios({
-				url: uploadResult.secure_url,
-				method: 'GET',
-				responseType: 'arraybuffer'
-			});
-
-			let audioBuffer;
-			let audioFileTemp;
-
-			// Create a File-like object
-			if (format === "webm") {
-				audioBuffer = response.data;
-				audioFileTemp = new File([audioBuffer], 'audio_file.webm', { type: 'audio/webm' });
-			} else {
-				audioBuffer = response.data;
-				audioFileTemp = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
-			}
-
-			console.log('Audio File:', audioFileTemp); */
-
-			return audioFileTemp; 
-
-		} catch (error) {
-			console.error('Error converting video to audio:', error);
-		}
-	}
-
 /* 
 async function transcribeChunk(blobChunk) {
 	try {
@@ -489,8 +438,7 @@ const chunkSizeMB = 25; */
 	});
  */
 	
-	audio_file = await videoToAudio(recordingFile, "mp4");
-	console.log(audio_file)
+	//console.log(audio_file)
 	//audio_file = await videoToAudio(recordingFile, "webm");
 
 	/* if(audioFile) {
@@ -545,7 +493,7 @@ ffmpeg(videoStream)
 	})
 	.pipe(audioStream, { end: true }); */
 
-	recording_link = "https://www.youtube.com/watch?v=";
+	//recording_link = "https://www.youtube.com/watch?v=";
 
 		return { status: 200 };
 	},
