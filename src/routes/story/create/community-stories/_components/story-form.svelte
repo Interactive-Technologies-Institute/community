@@ -45,50 +45,6 @@
 
     $formData.role = "community";
 
-    /* function extractAudio(file) {
-      const url = URL.createObjectURL(file);
-      const video = document.createElement('video');
-      video.src = url;
-
-      video.addEventListener('loadedmetadata', () => {
-        const audioContext = new AudioContext();
-        const source = audioContext.createMediaElementSource(video);
-        const destination = audioContext.createMediaStreamDestination();
-        source.connect(destination);
-        source.connect(audioContext.destination);
-
-        const recorder = new MediaRecorder(destination.stream);
-        let chunks = [];
-
-        recorder.ondataavailable = event => {
-          chunks.push(event.data);
-        };
-
-        recorder.onstop = () => {
-          audioBlob = new Blob(chunks, { type: 'audio/wav' });
-          audioFile = new File([audioBlob], 'audio_file.wav', { type: 'audio/wav' });
-          // Now you have the audio blob, you can send it to the server
-          //sendAudioToServer(audioBlob);
-        };
-
-        recorder.start();
-        video.play();
-
-        // Stop recording after the video duration
-        setTimeout(() => {
-          recorder.stop();
-        }, video.duration * 1000);
-      });
-    }
-
-    function handleVideoChange(event) {
-      const file = event.target.files[0];
-      if (file) {
-        extractAudio(file);
-      }
-    } */
-
-
 	  let uploadVideoForm: HTMLFormElement;
 	  let createStoryForm: HTMLFormElement;
 
@@ -143,6 +99,13 @@
           </span>
 				</Form.Control>
 			</Form.Field>
+
+      <Form.Field {form} hidden name="role" class="text-center">
+        <Form.Control let:attrs>
+          <input hidden name="role" bind:value={$formData.role} />
+          <Form.FieldErrors />
+        </Form.Control>
+      </Form.Field>
     </div>
 
     <div class="page" class:show={page === 4}>

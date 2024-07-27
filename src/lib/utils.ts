@@ -114,7 +114,6 @@ export async function handleFormAction<
 ): Promise<OutputData | ActionFailure<{ message: string }>> {
 	const { requireAuth = true as RequireAuth } = options ?? {};
 	let userId: string | undefined = undefined;
-	console.log("EVENT RQUEST DO UTILS", event.request)
 
 	const form = await superValidate(event.request, zod(schema), { id: formId });
 

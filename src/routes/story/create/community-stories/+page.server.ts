@@ -13,6 +13,8 @@ import OpenAI from "openai";
 import { v2 as cloudinary } from 'cloudinary';
 import axios from 'axios';
 import fs from 'fs';
+import ffmpeg from 'fluent-ffmpeg';
+import PassThrough from 'stream';
 
 // Configure Cloudinary with your credentials
 cloudinary.config({
@@ -97,8 +99,8 @@ export const load = async ({ event, locals, url }) => {
 export const actions = {
 	createStory: async (event) =>
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
-		console.log("eu entro aqui nos create story?")
-		console.log("form do createstory", form)
+		//console.log("form do createstory", form)
+
 		const tempImages = [
 			{
 				imageUrl: "",
@@ -115,7 +117,9 @@ export const actions = {
 		]
 		
 		let recordingFile = form.data.recording as File;
-		//let audioFile = audio_file as File;
+		console.log("audio antes do file", audio_file)
+		let audioFile = audio_file as File;
+		console.log("audio dps do file", audioFile)
 
 		/* function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -130,7 +134,7 @@ export const actions = {
 		async function transcribe() {
 			try {
 				const transcription = await openai.audio.transcriptions.create({
-					file: audio_file,
+					file: audioFile,
 					model: "whisper-1",
 					response_format: "text"
 				});
@@ -233,13 +237,6 @@ export const actions = {
 
 		const {
 			recording,
-			audio,
-			image_1,
-			image_2,
-			image_3,
-			image_1_url,
-			image_2_url,
-			image_3_url,
 			images,
 			...data
 		} = form.data;
@@ -351,6 +348,7 @@ export const actions = {
 				const uploadStream = cloudinary.uploader.upload_stream(
 					{
 						resource_type: 'video',
+						format: 'mp4',
 						eager: [{ format: format }],
 						eager_async: true,
 					},
@@ -365,6 +363,44 @@ export const actions = {
 
 			if (!uploadResult) throw new Error('Failed to upload video to Cloudinary');
 
+			/* const convertVideo = await new Promise ((resolve, reject) => {
+				const transformationResult = cloudinary.video(uploadResult.public_id, {fetch_format: "mp4"})
+			}); */
+
+			/* let new_video = cloudinary.video(uploadResult.public_id, {fetch_format: "mp4"})
+			console.log(new_video) */
+
+			// Fetch the audio data as a buffer
+			const response = await axios({
+				url: uploadResult.secure_url,
+				method: 'GET',
+				responseType: 'arraybuffer'
+			});
+
+			let audioBuffer = response.data;
+			let audioFileTemp = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
+
+			//console.log(convertVideo)
+
+			/* cloudinary.uploader
+			.upload(buffer, { 
+				use_filename: true})
+			.then(result=>console.log("OLHA O RESULTADOOO", result)); */
+
+			/* let new_video = cloudinary.video(stream, {fetch_format: "mp4"})
+			console.log(new_video) */
+
+			/* if (!uploadResult) throw new Error('Failed to upload video to Cloudinary');
+
+			const resource = await cloudinary.api.resource(uploadResult.public_id, {
+				resource_type: 'video'
+			});
+	
+			console.log('File Format:', resource.format); // e.g., 'mp4'
+			console.log('Audio Codec:', resource.audio.codec); // e.g., 'aac'
+			console.log('Container Format:', resource.resource_type); // 'video' generally for Cloudinary audio files
+			console.log('Duration:', resource.duration); // in seconds
+
 			// Fetch the audio data as a buffer
 			const response = await axios({
 				url: uploadResult.secure_url,
@@ -376,17 +412,17 @@ export const actions = {
 			let audioFileTemp;
 
 			// Create a File-like object
-			if (format === "wav") {
+			if (format === "webm") {
 				audioBuffer = response.data;
-				audioFileTemp = new File([audioBuffer], 'audio_file.wav', { type: 'audio/wav' });
+				audioFileTemp = new File([audioBuffer], 'audio_file.webm', { type: 'audio/webm' });
 			} else {
 				audioBuffer = response.data;
 				audioFileTemp = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
 			}
 
-			console.log('Audio File:', audioFileTemp);
+			console.log('Audio File:', audioFileTemp); */
 
-			return audioFileTemp;
+			return audioFileTemp; 
 
 		} catch (error) {
 			console.error('Error converting video to audio:', error);
@@ -453,8 +489,9 @@ const chunkSizeMB = 25; */
 	});
  */
 	
-	let video_file = await videoToAudio(recordingFile, "mp4");
-	audio_file = await videoToAudio(video_file, "wav");
+	audio_file = await videoToAudio(recordingFile, "mp4");
+	console.log(audio_file)
+	//audio_file = await videoToAudio(recordingFile, "webm");
 
 	/* if(audioFile) {
 		 transcribeFile(audioFile, chunkSizeMB)
@@ -468,6 +505,45 @@ const chunkSizeMB = 25; */
 		//transcription = await transcribe(audioFile);
 		//console.log(transcription)
 	} */
+
+
+	// Assume `videoFile` is a Buffer or File instance containing your .mov data
+//const videoFile = ...; // your .mov file data
+/* const buffer = await recordingFile.arrayBuffer();
+const videoBuffer = Buffer.from(buffer);
+const outputFormat = 'mp3'; // change to desired format, e.g., 'wav', 'ogg', etc. */
+
+// Create a readable stream from the video buffer using bufferToStream
+/* const videoStream = bufferToStream(videoBuffer); */
+
+
+// Prepare to collect the output audio data
+/* const audioStream = new PassThrough();
+let audioData = [];
+
+audioStream.on('data', chunk => {
+	audioData.push(chunk);
+});
+
+audioStream.on('end', () => {
+	// Combine the chunks into a single Buffer
+	audioData = Buffer.concat(audioData);
+	console.log('Conversion finished. Audio data length:', audioData.length);
+
+	// Create a File object from the buffer
+	audio_file = new File([audioData], 'audio_file.mp3', { type: 'audio/mp3' });
+	console.log('Audio File:', audio_file);
+
+	// Return or process the audio file as needed
+});
+
+// Perform the conversion
+ffmpeg(videoStream)
+	.toFormat(outputFormat)
+	.on('error', (err) => {
+		console.error('An error occurred:', err.message);
+	})
+	.pipe(audioStream, { end: true }); */
 
 	recording_link = "https://www.youtube.com/watch?v=";
 
