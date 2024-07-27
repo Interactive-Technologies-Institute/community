@@ -109,13 +109,9 @@ export const actions = {
 				imageUrl: "",
 				image: form.data.images[1] as File
 			},
-			{
-				imageUrl: "",
-				image: form.data.images[2] as File
-			},
 		]
 		
-		recordingFile = recordingFile as File;
+		console.log(recordingFile);
 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -312,6 +308,7 @@ export const actions = {
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
 		recordingFile = formData.recording as File;
+		console.log("isso nao funcionando?")
 		console.log("recebo algo", formData)
 
 		/* const oauth2Client = new google.auth.OAuth2(

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
+  import { applyAction, deserialize, enhance } from '$app/forms';
   import { Button } from "$lib/components/ui/button";
   import * as Form from '$lib/components/ui/form';
   import * as Carousel from "$lib/components/ui/carousel/index.js";
@@ -48,10 +48,30 @@
 	  let uploadVideoForm: HTMLFormElement;
 	  let createStoryForm: HTMLFormElement;
 
-  function submitFormAndUpdatePage() {
+  async function submitFormAndUpdatePage(event) {
     // adicionar storyteller
-    uploadVideoForm.requestSubmit();
-    page = 4;
+    const data = new FormData(event.currentTarget);
+    console.log(data.get('recording'))
+
+		const response = await fetch(event.currentTarget.action, {
+			method: 'POST',
+			body: data,
+      headers: {
+        'x-sveltekit-action': 'true'
+      }
+		});
+
+    const result = deserialize(await response.text());
+
+		if (result.type === 'success') {
+			// rerun all `load` functions, following the successful update
+			page = 4;
+		}
+
+    applyAction(result);
+    /* const file = event.currentTarget;
+    console.log(file.size)
+    uploadVideoForm.requestSubmit(); */
   }
 
   function submitCreateStoryForm() {
