@@ -13,8 +13,8 @@ import OpenAI from "openai";
 import { v2 as cloudinary } from 'cloudinary';
 import axios from 'axios';
 import fs from 'fs';
-import ffmpeg from 'fluent-ffmpeg';
-import PassThrough from 'stream';
+/* import ffmpeg from 'fluent-ffmpeg';
+import PassThrough from 'stream'; */
 
 // Configure Cloudinary with your credentials
 cloudinary.config({
