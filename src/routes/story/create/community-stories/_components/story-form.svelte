@@ -13,7 +13,7 @@
   import Input from "$lib/components/ui/input/input.svelte";
 
   import { ArrowRight, Loader2 } from "lucide-svelte";
-  import Camera from "./camera.svelte";
+  import JSZip from 'jszip';
   
   const questions = [
     "Fale-nos de si (o seu nome, idade, bairro onde vive)",
@@ -50,12 +50,22 @@
 
   async function submitFormAndUpdatePage(event) {
     // adicionar storyteller
+    const zip = new JSZip();
     const data = new FormData(event.currentTarget);
-    console.log(data.get('recording'))
+    const file = data.get('recording') as File;
+    console.log(file)
+    zip.file(file.name, file);
+    const zippedContent = await zip.generateAsync({ type: 'blob', compression: "DEFLATE", compressionOptions: { level: 9 } });
+    console.log("zipado", zippedContent)
 
-		const response = await fetch(event.currentTarget.action, {
+    // Create a new FormData object to include the zipped file
+    const zippedFormData = new FormData();
+    zippedFormData.append('recording', zippedContent, `${file.name}.zip`);
+    console.log("dentro do zip", zippedFormData.get('recording'));
+
+		const response = await fetch('?/uploadVideo', {
 			method: 'POST',
-			body: data,
+			body: zippedFormData,
       headers: {
         'x-sveltekit-action': 'true'
       }
@@ -64,7 +74,6 @@
     const result = deserialize(await response.text());
 
 		if (result.type === 'success') {
-			// rerun all `load` functions, following the successful update
 			page = 4;
 		}
 

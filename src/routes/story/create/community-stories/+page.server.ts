@@ -13,6 +13,7 @@ import OpenAI from "openai";
 import { v2 as cloudinary } from 'cloudinary';
 import axios from 'axios';
 import fs from 'fs';
+import JSZip from 'jszip';
 /* import ffmpeg from 'fluent-ffmpeg';
 import PassThrough from 'stream'; */
 
@@ -307,9 +308,26 @@ export const actions = {
 	}),
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
-		recordingFile = formData.recording as File;
+		//recordingFile = formData.recording as File;
 		console.log("isso nao funcionando?")
 		console.log("recebo algo", formData)
+
+		async function unzip(buffer) {
+			try {
+				console.log("buffer do zip", buffer);
+
+				const zip = await JSZip.loadAsync(buffer);
+				const fileName = Object.keys(zip.files)[0];
+				const fileData = await zip.file(fileName).async('nodebuffer');
+				const file = new File([fileData], fileName, { type: 'video/mov' });
+
+				return file;
+			} catch (error) {
+				console.error('Error unzipping file:', error);
+			}
+		}
+
+		recordingFile = await unzip(formData.recording)
 
 		/* const oauth2Client = new google.auth.OAuth2(
 			PUBLIC_YOUTUBE_CLIENT_ID,
