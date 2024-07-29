@@ -13,7 +13,6 @@ import OpenAI from "openai";
 import { v2 as cloudinary } from 'cloudinary';
 import axios from 'axios';
 import fs from 'fs';
-import JSZip from 'jszip';
 /* import ffmpeg from 'fluent-ffmpeg';
 import PassThrough from 'stream'; */
 
@@ -29,6 +28,7 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 const youtube = google.youtube('v3');
 
 let recordingFile;
+let recordingUrl;
 
 //const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
 const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
@@ -99,7 +99,7 @@ export const load = async ({ event, locals, url }) => {
 export const actions = {
 	createStory: async (event) =>
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
-		//console.log("form do createstory", form)
+		console.log("form do createstory", form)
 
 		const tempImages = [
 			{
@@ -111,8 +111,6 @@ export const actions = {
 				image: form.data.images[1] as File
 			},
 		]
-		
-		console.log(recordingFile);
 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -124,7 +122,7 @@ export const actions = {
 		} 
 
 		// Function to upload video and convert to audio
-	async function videoToAudio(videoFile, format) {
+	/* async function videoToAudio(videoFile, format) {
 		try {
 			// Convert File to stream if needed
 			const buffer = await videoFile.arrayBuffer();
@@ -155,9 +153,9 @@ export const actions = {
 		} catch (error) {
 			console.error('Error converting video to audio:', error);
 		}
-	}
+	} */
 
-	async function getVideo(url) {
+	/* async function getVideo(url) {
 		try {
 			// Fetch the audio data as a buffer
 			const response = await axios({
@@ -173,7 +171,7 @@ export const actions = {
 		} catch (error) {
 			console.error('Error getting video:', error);
 		}
-	}
+	} */
 
 		// transcription
 		async function transcribe(audioFile) {
@@ -280,9 +278,9 @@ export const actions = {
 			return fail(400, { message: 'No recording file provided' });
 		} */
 
-		let video_url = await videoToAudio(recordingFile, "mp4");
-		let audio_file = await getVideo(video_url)
-		let recording_link = "https://www.youtube.com/watch?v=";
+		//let video_url = await videoToAudio(recordingFile, "mp4");
+		//let audio_file = await getVideo(video_url)
+		//let recording_link = "https://www.youtube.com/watch?v=";
 
 		const {
 			recording,
@@ -290,11 +288,10 @@ export const actions = {
 			...data
 		} = form.data;
 
-		console.log("audio para publicar", audio_file)
 
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
-		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recording_link, user_id: userId, transcription: await transcribe(audio_file) });
+		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recordingUrl, user_id: userId, transcription: await transcribe(recordingFile) });
 
 		if (supabaseError) {
 			console.log("supabaseError", supabaseError.message)
@@ -309,25 +306,30 @@ export const actions = {
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
 		//recordingFile = formData.recording as File;
-		console.log("isso nao funcionando?")
 		console.log("recebo algo", formData)
+		recordingUrl = formData.fileUrl;
 
-		async function unzip(buffer) {
+		async function fetchVideoAsFile(url, fileName) {
 			try {
-				console.log("buffer do zip", buffer);
-
-				const zip = await JSZip.loadAsync(buffer);
-				const fileName = Object.keys(zip.files)[0];
-				const fileData = await zip.file(fileName).async('nodebuffer');
-				const file = new File([fileData], fileName, { type: 'video/mov' });
-
+				const response = await fetch(url);
+				if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+		
+				// Convert the response to a Blob
+				const blob = await response.blob();
+		
+				// Create a File object from the Blob
+				const file = new File([blob], fileName, { type: blob.type, lastModified: Date.now() });
+		
 				return file;
 			} catch (error) {
-				console.error('Error unzipping file:', error);
+				console.error('Error fetching the video:', error);
+				return null;
 			}
 		}
 
-		recordingFile = await unzip(formData.recording)
+		recordingFile = await fetchVideoAsFile(formData.fileUrl, 'video')
+		console.log(recordingFile)
+		//recordingFile = formData.recording;
 
 		/* const oauth2Client = new google.auth.OAuth2(
 			PUBLIC_YOUTUBE_CLIENT_ID,

@@ -5,15 +5,18 @@
   import * as Carousel from "$lib/components/ui/carousel/index.js";
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { createStorySchema, type CreateStorySchema } from '$lib/schemas/story';
+  import { PUBLIC_CLOUDINARY_API_KEY, PUBLIC_CLOUDINARY_API_SECRET, PUBLIC_CLOUDINARY_CLOUD_NAME  } from '$env/static/public'
   
   import { superForm, type SuperValidated } from 'sveltekit-superforms';
   import { zodClient, type Infer } from 'sveltekit-superforms/adapters';
+
+  import { Cloudinary } from "@cloudinary/url-gen";
+  import { format } from '@cloudinary/url-gen/actions/delivery';
   
   import VideoAudio from "./video-audio.svelte";
   import Input from "$lib/components/ui/input/input.svelte";
 
   import { ArrowRight, Loader2 } from "lucide-svelte";
-  import JSZip from 'jszip';
   
   const questions = [
     "Fale-nos de si (o seu nome, idade, bairro onde vive)",
@@ -22,6 +25,13 @@
     "Diz-nos como te sentiste quando o Balcão te ajudou, qual foi o impacto na tua vida?",
     "Como resolverias isso se o Balcão não existisse? Seria mais fácil ou mais difícil?"
   ]
+
+  // Configure Cloudinary with your credentials
+  const cld = new Cloudinary({
+  cloud: {
+    cloudName: PUBLIC_CLOUDINARY_CLOUD_NAME
+  }
+});
   
   let altImg = 'Taking notes'
   
@@ -49,35 +59,85 @@
 	  let createStoryForm: HTMLFormElement;
 
   async function submitFormAndUpdatePage(event) {
-    // adicionar storyteller
-    const zip = new JSZip();
-    const data = new FormData(event.currentTarget);
-    const file = data.get('recording') as File;
-    console.log(file)
-    zip.file(file.name, file);
-    const zippedContent = await zip.generateAsync({ type: 'blob', compression: "DEFLATE", compressionOptions: { level: 9 } });
-    console.log("zipado", zippedContent)
+    event.preventDefault();
 
-    // Create a new FormData object to include the zipped file
-    const zippedFormData = new FormData();
-    zippedFormData.append('recording', zippedContent, `${file.name}.zip`);
-    console.log("dentro do zip", zippedFormData.get('recording'));
+  const form = new FormData(event.currentTarget);
+  const file = form.get('recording'); // Ensure 'recording' is the name of your file input field
+  console.log(file);
 
-		const response = await fetch('?/uploadVideo', {
-			method: 'POST',
-			body: zippedFormData,
-      headers: {
-        'x-sveltekit-action': 'true'
-      }
-		});
+  async function uploadVideo(video) {
+    // Create a form data object to store the file and other parameters
+    const tempFormData = new FormData();
+    tempFormData.append('file', video);
+    tempFormData.append('upload_preset', 'bb-comunidade'); // Ensure you have an unsigned upload preset
 
-    const result = deserialize(await response.text());
+    // Make the request to Cloudinary's upload endpoint
+    try {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`, {
+        method: 'POST',
+        body: tempFormData,
+      });
 
-		if (result.type === 'success') {
-			page = 4;
-		}
+      const data = await response.json();
+      console.log("data secure url", data.secure_url); // URL of the uploaded file
+      return { videoUrl: data.secure_url, id: data.public_id };
+    } catch (error) {
+      console.error('Error uploading the video:', error);
+      return null;
+    }
+  }
 
-    applyAction(result);
+  async function toMp4(uploadResponse) {
+    if (!uploadResponse || !uploadResponse.id) {
+      console.error('Invalid upload response:', uploadResponse);
+      return '';
+    }
+
+    try {
+      // Use the public ID returned from the upload response
+      const publicId = uploadResponse.id;
+      const video = cld.video(publicId);
+
+      // Set the format to MP4
+      video.delivery(format('mp4'));
+
+      // Get the transformed URL
+      const transformedUrl = video.toURL();
+      console.log(transformedUrl); // This will be the URL of the transformed video
+      return transformedUrl;
+    } catch (error) {
+      console.error('Error converting video to mp4:', error);
+      return '';
+    }
+  }
+
+  const cloudinaryResponse = await uploadVideo(file);
+  console.log("cloudinary response", cloudinaryResponse);
+
+  if (!cloudinaryResponse) {
+    console.error('Failed to upload video');
+    return;
+  }
+
+  const urlVideoConverted = await toMp4(cloudinaryResponse);
+  const newFormData = new FormData();
+  newFormData.append('fileUrl', urlVideoConverted);
+
+  const response = await fetch('?/uploadVideo', {
+    method: 'POST',
+    body: newFormData,
+    headers: {
+      'x-sveltekit-action': 'true'
+    }
+  });
+
+  const result =  deserialize(await response.text());
+  console.log("Result:", result);
+  if (result.type === 'success') {
+    page = 4;
+  }
+
+  applyAction(result);
     /* const file = event.currentTarget;
     console.log(file.size)
     uploadVideoForm.requestSubmit(); */
@@ -155,7 +215,7 @@
     </div>
 </form>
 
-<form  method="post" action="?/uploadVideo"  bind:this={uploadVideoForm} use:enhance enctype="multipart/form-data" on:submit|preventDefault={submitFormAndUpdatePage}>
+<form  method="post" action="?/uploadVideo"  bind:this={uploadVideoForm} enctype="multipart/form-data" on:submit|preventDefault={submitFormAndUpdatePage}>
   <div class="page" class:show={page === 3}>
     <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
       <Carousel.Root>
@@ -177,7 +237,7 @@
         <Form.Control let:attrs>
           <label for="videoFile">Upload a video:</label>
           <span class="flex justify-center gap-2 inline-block pt-3">
-            <Input  {...attrs} type="file" bind:value={$formData.recording} accept="video/*" />
+            <Input  {...attrs} type="file" accept="video/*" />
             <Form.FieldErrors />
             <span><Button class="p-2" type="submit"><ArrowRight /></Button></span>
           </span>
