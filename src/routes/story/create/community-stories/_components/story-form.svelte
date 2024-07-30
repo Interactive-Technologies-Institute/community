@@ -149,9 +149,10 @@
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const file = formData.get('recording_link'); // Ensure 'recording' is the name of your file input field
-    console.log(file);
+    const images = formData.getAll('images'); // Ensure 'recording' is the name of your file input field
+    console.log(images);
 
-    async function uploadVideo(video) {
+    async function uploadVideo(video, type) {
       // Create a form data object to store the file and other parameters
       const tempFormData = new FormData();
       tempFormData.append('file', video);
@@ -159,7 +160,7 @@
 
       // Make the request to Cloudinary's upload endpoint
       try {
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`, {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${PUBLIC_CLOUDINARY_CLOUD_NAME}/${type}/upload`, {
           method: 'POST',
           body: tempFormData,
         });
@@ -175,13 +176,26 @@
       }
     }
 
-    const videoUrl = await uploadVideo(file);
+    const videoUrl = await uploadVideo(file, "video");
+    let image_1 = await uploadVideo(images[0], "image");
+    let image_2 = await uploadVideo(images[1], "image");
     console.log("cloudinary response", videoUrl);
 
     if (!videoUrl) {
       console.error('Failed to upload video');
       return;
     }
+
+    const urls = [];
+
+    for (const image of images) {
+      const url = await uploadVideo(image, "image");
+      urls.push(url);
+    }
+
+    // Replace the 'images' field in formData with the array of URLs
+    formData.delete('images');
+    urls.forEach(url => formData.append('images', url));
 
     // Set recording_link field in formData
     formData.set('recording_link', videoUrl);
@@ -202,7 +216,6 @@
 
   const result =  deserialize(await response.text());
   console.log("Result:", result);
-  console.log(formData)
 
   applyAction(result);
   }
@@ -284,8 +297,9 @@
     <div class="page" class:show={page === 4}>
       <Form.Field {form} name="images" class="text-center">
         <Form.Control let:attrs>
-          <Input  {...attrs} type="file" bind:value={$formData.images[0]} capture="environment" accept="image/*" />
-          <Input  {...attrs} type="file" bind:value={$formData.images[1]} capture="environment" accept="image/*" />
+          <!-- <Input  {...attrs} type="file" bind:value={$formData.images[0]} capture="environment" accept="image/*" />
+          <Input  {...attrs} type="file" bind:value={$formData.images[1]} capture="environment" accept="image/*" /> -->
+          <Input  {...attrs} type="file" multiple bind:value={$formData.images} capture="environment" accept="image/*"/>
         </Form.Control>
       </Form.Field>
       <div class="mt-28 text-center">
