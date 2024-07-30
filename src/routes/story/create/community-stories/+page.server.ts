@@ -13,8 +13,6 @@ import OpenAI from "openai";
 import { v2 as cloudinary } from 'cloudinary';
 import axios from 'axios';
 import fs from 'fs';
-/* import ffmpeg from 'fluent-ffmpeg';
-import PassThrough from 'stream'; */
 
 // Configure Cloudinary with your credentials
 cloudinary.config({
@@ -25,20 +23,19 @@ cloudinary.config({
 
 const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 
-const youtube = google.youtube('v3');
+//const youtube = google.youtube('v3');
 
 //const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
-const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
-let gTokens = {};
+//const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
+//let gTokens = {};
 
 export const load = async ({ event, locals, url }) => {
-	console.log("eu entro aqui no load")
 	const { session } = await locals.safeGetSession();
 	if (!session) {
 		return redirect(302, handleSignInRedirect(event));
 	}
 
-	const oauth2Client = new google.auth.OAuth2(
+	/* const oauth2Client = new google.auth.OAuth2(
 			PUBLIC_YOUTUBE_CLIENT_ID,
 			PUBLIC_YOUTUBE_SECRET_KEY,
 			REDIRECT_URI
@@ -83,7 +80,7 @@ export const load = async ({ event, locals, url }) => {
 					body: `Error: ${error.message}`,
 				};
 			}
-		}
+		} */
 
     return {
         createForm: await superValidate(zod(createStorySchema), {
@@ -96,18 +93,7 @@ export const load = async ({ event, locals, url }) => {
 export const actions = {
 	createStory: async (event) =>
 	handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
-		console.log("form do createstory", form)
-
-		const tempImages = [
-			{
-				imageUrl: "",
-				image: form.data.images[0] as File
-			},
-			{
-				imageUrl: "",
-				image: form.data.images[1] as File
-			},
-		]
+		console.log("form do createstory", form.data)
 
 		function bufferToStream(buffer: ArrayBuffer) {
 			return new Readable({
@@ -119,11 +105,11 @@ export const actions = {
 		} 
 
 		// Function to upload video and convert to audio
-	async function toMp4(videoFile) {
+	/*async function toMp4(videoFile) {
 		try {
 			// Convert File to stream if needed
 			const buffer = await videoFile.arrayBuffer();
-			const stream = bufferToStream(buffer);
+			const stream = bufferToStream(buffer); 
 
 			// Upload video to Cloudinary
 			const uploadResult = await new Promise((resolve, reject) => {
@@ -170,12 +156,12 @@ export const actions = {
 		}
 	}
 
-	let movVideo = await getCloudinaryVideo(form.data.recording_link, "mov")
-	let mp4Url = await toMp4(movVideo)
-	let mp4Video = await getCloudinaryVideo(mp4Url, "mp4")
+	let movVideo = await getCloudinaryVideo(form.data.recording_link as File, "mov")
+	let mp4Url = await toMp4(movVideo); */
+	//let mp4Video = await getCloudinaryVideo(mp4Url, "mp4")
 
 		// transcription
-		async function transcribe(audioFile) {
+		/* async function transcribe(audioFile) {
 			try {
 				const transcription = await openai.audio.transcriptions.create({
 					file: audioFile,
@@ -192,330 +178,25 @@ export const actions = {
 		}
 
 		let transcription = await transcribe(mp4Video) 
-		console.log(transcription)
-/* 
- 		async function uploadImage(image: File): Promise<{ path: string; error: StorageError | null }> {
-			const fileExt = image.name.split('.').pop();
-			const filePath = `${userId}_${uuidv4()}.${fileExt}`;
+		console.log(transcription) */
 
-			const { data: imageFileData, error: imageFileError } = await event.locals.supabase.storage
-				.from('story')
-				.upload(filePath, image);
-
-			if (imageFileError) {
-				console.log(imageFileError)
-				setFlash({ type: 'error', message: imageFileError.message }, event.cookies);
-				return { path: '', error: imageFileError };
-			}
-
-			return { path: imageFileData.path, error: null };
-		}
-
-		const userImages = await Promise.all(
-			tempImages.map(async (s) => {
-				let imagePath = '';
-				if (s.image) {
-					const { path } = await uploadImage(s.image);
-					// TODO: handle error
-					imagePath = path;
-				} else if (s.imageUrl) {
-					imagePath = s.imageUrl.split('/').pop() ?? '';
-				}
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { imageUrl, ...data } = s;
-				return { ...data, image: imagePath };
-			})
-		); */
-
-		
-		/* async function uploadVideoYoutube(video: File) {
-			const recordingBuffer = await video.arrayBuffer();
-			const recordingStream = bufferToStream(recordingBuffer);
-			let today = new Date();
-
-			const res = await youtube.videos.insert(
-				{
-					auth: oauth2Client,
-					part: 'id,snippet,status',
-					notifySubscribers: false,
-					requestBody: {
-						snippet: {
-							title: 'Comunidade: ' + form.data.storyteller + '_' + today.toISOString(),
-							description: 'História de ' + form.data.storyteller,
-						},
-						status: {
-							privacyStatus: 'private',
-						},
-					},
-					media: {
-						body: recordingStream,
-					},
-				},
-				{
-					// Use the `onUploadProgress` event from Axios to track the
-					// number of bytes uploaded to this point.
-					onUploadProgress: evt => {
-						const progress = (evt.bytesRead / form.data.recording.size) * 100;
-						/* readline.clearLine(process.stdout, 0);
-						readline.cursorTo(process.stdout, 0, null);
-						process.stdout.write(`${Math.round(progress)}% complete\n`); 
-					},
-				}
-			);
-				
-			return {
-				success: true,
-				videoId: res.data.id
-			};
-		}  
-
-
-		/* if (recordingFile) {
-			try {
-				let youtubeData = await uploadVideoYoutube(recordingFile);
-				form.data = { ...form.data, recording_link: "https://www.youtube.com/watch?v=" + youtubeData.videoId }
-			} catch (error) {
-				console.error('Error uploading video:', error);
-				return fail(500, { message: 'Failed to upload video' });
-			}
-		} else {
-			return fail(400, { message: 'No recording file provided' });
-		} */
-
-		//let video_url = await videoToAudio(recordingFile, "mp4");
-		//let audio_file = await getVideo(video_url)
-		//let recording_link = "https://www.youtube.com/watch?v=";
-
-		/* const {
-			recording,
-			images,
+/* 		const {
+			recording_link,
 			...data
-		} = form.data;
-
+		} = form.data; */
 
 		const { error: supabaseError } = await event.locals.supabase
 		.from('story')
-		.insert({ ...data, image: userImages.map(img => img.image), recording_link: recordingUrl, user_id: userId, transcription: await transcribe(recordingFile) });
+		.insert({ ...form.data, user_id: userId });
 
 		if (supabaseError) {
 			console.log("supabaseError", supabaseError.message)
 			setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
 			return fail(500, withFiles({ message: supabaseError.message, form }));
-		} */
+		}
 
 		throw redirect(303, '/story');
 
 		return { success: true };
-	}),
-	uploadVideo: async ({ request }) => {
-		const formData = Object.fromEntries(await request.formData());
-		//recordingFile = formData.recording as File;
-		console.log("recebo algo", formData)
-		recordingUrl = formData.fileUrl;
-
-		async function fetchVideoAsFile(url, fileName) {
-			try {
-				const response = await fetch(url);
-				if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-		
-				// Convert the response to a Blob
-				const blob = await response.blob();
-		
-				// Create a File object from the Blob
-				const file = new File([blob], fileName, { type: blob.type, lastModified: Date.now() });
-		
-				return file;
-			} catch (error) {
-				console.error('Error fetching the video:', error);
-				return null;
-			}
-		}
-
-		recordingFile = await fetchVideoAsFile(formData.fileUrl, 'video')
-		console.log(recordingFile)
-		//recordingFile = formData.recording;
-
-		/* const oauth2Client = new google.auth.OAuth2(
-			PUBLIC_YOUTUBE_CLIENT_ID,
-			PUBLIC_YOUTUBE_SECRET_KEY,
-			REDIRECT_URI
-		);
-
-		try {
-			oauth2Client.setCredentials(gTokens);
-		} catch (error) {
-			console.log("Not possible to set credentials:", error)
-		}
-
-
-		async function uploadVideoYoutube(video: File) {
-			const recordingBuffer = await video.arrayBuffer();
-			const recordingStream = bufferToStream(recordingBuffer);
-			let today = new Date();
-
-			const res = await youtube.videos.insert(
-				{
-					auth: oauth2Client,
-					part: 'id,snippet,status',
-					notifySubscribers: false,
-					requestBody: {
-						snippet: {
-							title: 'Comunidade: ' + formData.storyteller + '_' + today.toISOString(),
-							description: 'História de ' + formData.storyteller,
-						},
-						status: {
-							privacyStatus: 'private',
-						},
-					},
-					media: {
-						body: recordingStream,
-					},
-				},
-				{
-					// Use the `onUploadProgress` event from Axios to track the
-					// number of bytes uploaded to this point.
-					onUploadProgress: evt => {
-						const progress = (evt.bytesRead / formData.recording.size) * 100;
-					},
-				}
-			);
-				
-			return {
-				success: true,
-				videoId: res.data.id
-			};
-		}  
-
-
-		if (recordingFile) {
-			try {
-				let youtubeData = await uploadVideoYoutube(recordingFile);
-				recording_link = "https://www.youtube.com/watch?v=" + youtubeData.videoId;
-			} catch (error) {
-				console.error('Error uploading video:', error);
-				return fail(500, { message: 'Failed to upload video' });
-			}
-		} else {
-			return fail(400, { message: 'No recording file provided' });
-		} */
-
-/* 
-async function transcribeChunk(blobChunk) {
-	try {
-			const transcription = await openai.audio.transcriptions.create({
-					file: blobChunk,
-					model: "whisper-1",
-					response_format: "text"
-			});
-
-			return transcription;
-	} catch (error) {
-			console.error("Error in transcription:", error);
-			return null;
-	}
-}
-
-async function transcribeFile(file, chunkSizeMB) {
-	const chunkSize = chunkSizeMB * 1024 * 1024;
-	const totalChunks = Math.ceil(file.size / chunkSize);
-	let fullTranscription = '';
-
-	for (let i = 0; i < totalChunks; i++) {
-			const start = i * chunkSize;
-			const end = Math.min(start + chunkSize, file.size);
-			const chunk = file.slice(start, end);
-
-			const transcription = await transcribeChunk(chunk);
-			if (transcription) {
-					fullTranscription += transcription;
-			} else {
-					console.error(`Failed to transcribe chunk ${i}`);
-			}
-	}
-
-	return fullTranscription;
-} */
-
-// Usage example
-/* const file = new File([/* your file data ], "large-audio-file.mp3");
-const chunkSizeMB = 25; */
-
-	// Example usage: assume videoFile is a File object obtained from an upload or other source
-	/* console.log("recordingFile", recordingFile)
-	let video_file = await videoToAudio(recordingFile, "mp4");
-	audio_file = await videoToAudio(video_file, "mp3"); */
-
-		// Assuming 'fileBuffer' is the buffer containing the file's data
-	/* const audioBuffer = await audio_file.arrayBuffer();
-	const fileBuffer = Buffer.from(audioBuffer);
-	const filename = 'teste.wav'; // The desired filename on the server
-
-	fs.writeFile(filename, fileBuffer, (err) => {
-		if (err) {
-			console.error('Error saving the file:', err);
-		} else {
-			console.log('File saved successfully.');
-		}
-	});
- */
-	
-	//console.log(audio_file)
-	//audio_file = await videoToAudio(recordingFile, "webm");
-
-	/* if(audioFile) {
-		 transcribeFile(audioFile, chunkSizeMB)
-		.then(fullTranscription => {
-				console.log('Full Transcription:', fullTranscription);
-				transcription = fullTranscription;
-		})
-		.catch(error => {
-				console.error('Error during transcription process:', error);
-		}); 
-		//transcription = await transcribe(audioFile);
-		//console.log(transcription)
-	} */
-
-
-	// Assume `videoFile` is a Buffer or File instance containing your .mov data
-//const videoFile = ...; // your .mov file data
-/* const buffer = await recordingFile.arrayBuffer();
-const videoBuffer = Buffer.from(buffer);
-const outputFormat = 'mp3'; // change to desired format, e.g., 'wav', 'ogg', etc. */
-
-// Create a readable stream from the video buffer using bufferToStream
-/* const videoStream = bufferToStream(videoBuffer); */
-
-
-// Prepare to collect the output audio data
-/* const audioStream = new PassThrough();
-let audioData = [];
-
-audioStream.on('data', chunk => {
-	audioData.push(chunk);
-});
-
-audioStream.on('end', () => {
-	// Combine the chunks into a single Buffer
-	audioData = Buffer.concat(audioData);
-	console.log('Conversion finished. Audio data length:', audioData.length);
-
-	// Create a File object from the buffer
-	audio_file = new File([audioData], 'audio_file.mp3', { type: 'audio/mp3' });
-	console.log('Audio File:', audio_file);
-
-	// Return or process the audio file as needed
-});
-
-// Perform the conversion
-ffmpeg(videoStream)
-	.toFormat(outputFormat)
-	.on('error', (err) => {
-		console.error('An error occurred:', err.message);
 	})
-	.pipe(audioStream, { end: true }); */
-
-	//recording_link = "https://www.youtube.com/watch?v=";
-
-	return { success: true };
-	},
 };

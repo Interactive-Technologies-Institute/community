@@ -22,7 +22,7 @@ export const createStorySchema = z
 		recording_link: z.string().min(5, { message: 'Youtube Link is required' }).max(500).optional(),
 		tags: z.array(z.string()).min(1, { message: 'At least one tag is required' }),
 		role: z.enum(['community', 'technician']),
-		images: z.array(z.string()).min(2, { message: 'At least two images are required' }),
+		image: z.array(z.string()).min(2, { message: 'At least two images are required' }),
 	});
 
 export type CreateStorySchema = typeof createStorySchema;
