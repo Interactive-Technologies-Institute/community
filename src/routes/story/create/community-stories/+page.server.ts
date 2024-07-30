@@ -27,9 +27,6 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 
 const youtube = google.youtube('v3');
 
-let recordingFile;
-let recordingUrl;
-
 //const REDIRECT_URI = 'http://localhost:5173/story/create/community-stories';
 const REDIRECT_URI = 'https://comunidade-balcao.vercel.app/story/create/community-stories';
 let gTokens = {};
@@ -122,7 +119,7 @@ export const actions = {
 		} 
 
 		// Function to upload video and convert to audio
-	/* async function videoToAudio(videoFile, format) {
+	async function toMp4(videoFile) {
 		try {
 			// Convert File to stream if needed
 			const buffer = await videoFile.arrayBuffer();
@@ -134,7 +131,7 @@ export const actions = {
 					{
 						resource_type: 'video',
 						format: 'mp4',
-						eager: [{ format: format }],
+						eager: [{ format: 'mp4' }],
 						eager_async: true,
 					},
 					(error, result) => {
@@ -153,9 +150,9 @@ export const actions = {
 		} catch (error) {
 			console.error('Error converting video to audio:', error);
 		}
-	} */
+	}
 
-	/* async function getVideo(url) {
+	async function getCloudinaryVideo(url, format) {
 		try {
 			// Fetch the audio data as a buffer
 			const response = await axios({
@@ -164,14 +161,18 @@ export const actions = {
 				responseType: 'arraybuffer'
 			});
 
-			let audioBuffer = response.data;
-			let audioFileTemp = new File([audioBuffer], 'audio_file.mp4', { type: 'audio/mp4' });
+			let videoBuffer = response.data;
+			let videoFileTemp = new File([videoBuffer], `audio_file.${format}`, { type: `video/${format}` });
 
-			return audioFileTemp;
+			return videoFileTemp;
 		} catch (error) {
 			console.error('Error getting video:', error);
 		}
-	} */
+	}
+
+	let movVideo = await getCloudinaryVideo(form.data.recording_link, "mov")
+	let mp4Url = await toMp4(movVideo)
+	let mp4Video = await getCloudinaryVideo(mp4Url, "mp4")
 
 		// transcription
 		async function transcribe(audioFile) {
@@ -190,6 +191,9 @@ export const actions = {
 			}
 		}
 
+		let transcription = await transcribe(mp4Video) 
+		console.log(transcription)
+/* 
  		async function uploadImage(image: File): Promise<{ path: string; error: StorageError | null }> {
 			const fileExt = image.name.split('.').pop();
 			const filePath = `${userId}_${uuidv4()}.${fileExt}`;
@@ -221,7 +225,7 @@ export const actions = {
 				const { imageUrl, ...data } = s;
 				return { ...data, image: imagePath };
 			})
-		);
+		); */
 
 		
 		/* async function uploadVideoYoutube(video: File) {
@@ -282,7 +286,7 @@ export const actions = {
 		//let audio_file = await getVideo(video_url)
 		//let recording_link = "https://www.youtube.com/watch?v=";
 
-		const {
+		/* const {
 			recording,
 			images,
 			...data
@@ -297,11 +301,11 @@ export const actions = {
 			console.log("supabaseError", supabaseError.message)
 			setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
 			return fail(500, withFiles({ message: supabaseError.message, form }));
-		}
+		} */
 
 		throw redirect(303, '/story');
 
-		return;
+		return { success: true };
 	}),
 	uploadVideo: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());

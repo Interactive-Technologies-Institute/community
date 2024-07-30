@@ -59,9 +59,10 @@
 	  let createStoryForm: HTMLFormElement;
 
   async function submitFormAndUpdatePage(event) {
-    event.preventDefault();
+    //event.preventDefault();
+    console.log(event.currentTarget)
 
-  const form = new FormData(event.currentTarget);
+  /* const form = new FormData(event.currentTarget);
   const file = form.get('recording'); // Ensure 'recording' is the name of your file input field
   console.log(file);
 
@@ -80,14 +81,14 @@
 
       const data = await response.json();
       console.log("data secure url", data.secure_url); // URL of the uploaded file
-      return { videoUrl: data.secure_url, id: data.public_id };
+      return data.secure_url;
     } catch (error) {
       console.error('Error uploading the video:', error);
       return null;
     }
-  }
+  } */
 
-  async function toMp4(uploadResponse) {
+  /* async function toMp4(uploadResponse) {
     if (!uploadResponse || !uploadResponse.id) {
       console.error('Invalid upload response:', uploadResponse);
       return '';
@@ -109,42 +110,101 @@
       console.error('Error converting video to mp4:', error);
       return '';
     }
-  }
+  } */
 
-  const cloudinaryResponse = await uploadVideo(file);
-  console.log("cloudinary response", cloudinaryResponse);
+  const videoUrl = await uploadVideo(file);
+  console.log("cloudinary response", videoUrl);
 
-  if (!cloudinaryResponse) {
+  if (!videoUrl) {
     console.error('Failed to upload video');
     return;
   }
 
-  const urlVideoConverted = await toMp4(cloudinaryResponse);
-  const newFormData = new FormData();
-  newFormData.append('fileUrl', urlVideoConverted);
+  //const videoUrl = await toMp4(cloudinaryResponse);
+  $formData.recording_link = videoUrl;
+  /* const newFormData = new FormData();
+  newFormData.append('fileUrl', urlVideoConverted); */
 
-  const response = await fetch('?/uploadVideo', {
+  /* const response = await fetch('?/uploadVideo', {
     method: 'POST',
     body: newFormData,
     headers: {
       'x-sveltekit-action': 'true'
     }
-  });
+  }); */
 
-  const result =  deserialize(await response.text());
+  /* const result =  deserialize(await response.text());
   console.log("Result:", result);
   if (result.type === 'success') {
     page = 4;
   }
 
-  applyAction(result);
+  applyAction(result); */
     /* const file = event.currentTarget;
     console.log(file.size)
     uploadVideoForm.requestSubmit(); */
   }
 
-  function submitCreateStoryForm() {
-    createStoryForm.requestSubmit();
+  async function submitCreateStoryForm(event) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const file = formData.get('recording_link'); // Ensure 'recording' is the name of your file input field
+    console.log(file);
+
+    async function uploadVideo(video) {
+      // Create a form data object to store the file and other parameters
+      const tempFormData = new FormData();
+      tempFormData.append('file', video);
+      tempFormData.append('upload_preset', 'bb-comunidade'); // Ensure you have an unsigned upload preset
+
+      // Make the request to Cloudinary's upload endpoint
+      try {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`, {
+          method: 'POST',
+          body: tempFormData,
+        });
+
+        const data = await response.json();
+        console.log("data secure url", data.secure_url); // URL of the uploaded file
+
+        return data.secure_url;
+
+      } catch (error) {
+        console.error('Error uploading the video:', error);
+        return null;
+      }
+    }
+
+    const videoUrl = await uploadVideo(file);
+    console.log("cloudinary response", videoUrl);
+
+    if (!videoUrl) {
+      console.error('Failed to upload video');
+      return;
+    }
+
+    // Set recording_link field in formData
+    formData.set('recording_link', videoUrl);
+
+    // Reset the recording input field
+    /* const recordingInput = event.currentTarget.querySelector('input[name="recording"]');
+    if (recordingInput) {
+      recordingInput.value = ''; // Reset the input value
+    } */
+
+    const response = await fetch('?/createStory', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'x-sveltekit-action': 'true'
+      }
+    });
+
+  const result =  deserialize(await response.text());
+  console.log("Result:", result);
+  console.log(formData)
+
+  applyAction(result);
   }
 
 </script>
@@ -154,7 +214,7 @@
   .page.show { display: block; }
 </style>
 
-<form method="POST" action="?/createStory" use:enhance bind:this={createStoryForm} on:submit|preventDefault={submitCreateStoryForm} enctype="multipart/form-data" class="flex flex-col gap-y-10">
+<form method="POST" action="?/createStory" bind:this={createStoryForm} on:submit|preventDefault={submitCreateStoryForm} enctype="multipart/form-data" class="flex flex-col gap-y-10">
     <div class="page" class:show={page === 1}>
       <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
       <Form.Field {form} name="storyteller" class="text-center">
@@ -165,13 +225,6 @@
             <Form.FieldErrors />
             <span><Button class="p-2" type="button" on:click={() => page = 2}><ArrowRight /></Button></span>
           </span>
-        </Form.Control>
-      </Form.Field>
-
-      <Form.Field {form} hidden name="recording_link" class="text-center">
-        <Form.Control let:attrs>
-          <input hidden type="file" name="recording_link" bind:value={$formData.recording_link} />
-          <Form.FieldErrors />
         </Form.Control>
       </Form.Field>
     </div>
@@ -195,6 +248,37 @@
           <Form.FieldErrors />
         </Form.Control>
       </Form.Field>
+
+    </div>
+
+    <div class="page" class:show={page === 3}>
+      <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
+        <Carousel.Root>
+          <Carousel.Content>
+            {#each questions as question}
+              <Carousel.Item class="w-full">
+                <div class="text-center p-2">
+                  <span class="text-sm font-semibold">{question}</span>
+                </div>
+              </Carousel.Item>
+            {/each}
+          </Carousel.Content>
+          <Carousel.Previous />
+          <Carousel.Next />
+        </Carousel.Root>
+      </div>
+      <div class="mt-4 text-center">
+        <Form.Field {form} name="recording_link" class="text-center">
+          <Form.Control let:attrs>
+            <label for="videoFile">Upload a video:</label>
+            <span class="flex justify-center gap-2 inline-block pt-3">
+              <Input  {...attrs} type="file" accept="video/*" bind:value={$formData.recording_link} />
+              <Form.FieldErrors />
+              <span><Button class="p-2" on:click={() => page = 4}><ArrowRight /></Button></span>
+            </span>
+          </Form.Control>
+        </Form.Field>
+      </div>
     </div>
 
     <div class="page" class:show={page === 4}>
@@ -215,7 +299,7 @@
     </div>
 </form>
 
-<form  method="post" action="?/uploadVideo"  bind:this={uploadVideoForm} enctype="multipart/form-data" on:submit|preventDefault={submitFormAndUpdatePage}>
+<!-- <form  method="post" action="?/uploadVideo"  bind:this={uploadVideoForm} enctype="multipart/form-data" on:submit|preventDefault={submitFormAndUpdatePage}>
   <div class="page" class:show={page === 3}>
     <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
       <Carousel.Root>
@@ -246,3 +330,4 @@
     </div>
   </div>
 </form>
+ -->
