@@ -6,7 +6,7 @@
 
 	export let story: Story;
 
-	$: imageUrl = $page.data.supabase.storage.from('story').getPublicUrl(story.image[0]).data.publicUrl;
+	$: imageUrl = story.image[0];
 </script>
 
 <a href="/story/{story.id}">

@@ -2,7 +2,7 @@
 	import ModerationBanner from '@/components/moderation-banner.svelte';
 	import PageHeader from '@/components/page-header.svelte';
 	import { Button } from '@/components/ui/button';
-	import Card from '@/components/ui/card/card.svelte';
+	import * as Card from "$lib/components/ui/card";
 	import { BarChart2, CircleUser, Clock, Footprints, Pen, Tag, Trash } from 'lucide-svelte';
 	import StoryDeleteDialog from './_components/story-delete-dialog.svelte';
 	import { ArrowLeft, ArrowDownUp } from 'lucide-svelte';
@@ -19,14 +19,14 @@
 		<ModerationBanner moderation={data.moderation} />
 	{/if}
 	<div class="mb-10 flex flex-col items-center gap-y-4">
-		<!-- <div class=" flex flex-row gap-x-2">
-			{#each data.howTo.tags as tag}
+		<div class=" flex flex-row gap-x-2">
+			{#each data.story.tags as tag}
 				<Button variant="secondary" size="sm" href="/user/0">
 					<Tag class="mr-2 h-4 w-4" />
 					{tag}
 				</Button>
 			{/each}
-		</div> -->
+		</div>
 		<div class="grid grid-cols-8 gap-2 mb-6">
 			<Button class="p-2" href="/story/view-and-publish"><ArrowLeft /></Button>
 			<h2 class="my-auto text-xl font-semibold tracking-tight transition-colors col-span-5 text-justify">
@@ -41,7 +41,7 @@
 			<Card.Content class="flex justify-between pt-2">
 				<div class="my-auto">
 					<h2 class="text-sm font-bold tracking-tight transition-colors">
-						{data.story.audio_link}
+						<video src={data.story.recording_link} controls />
 					</h2>
 				</div>
 				<div>
@@ -58,7 +58,7 @@
 				<Card.Content class="flex justify-between pt-2">
 					<div class="my-auto">
 						<h2 class="text-sm font-bold tracking-tight transition-colors">
-							{image}
+							<img src={image} alt={`Imagem de ${data.story.storyteller}`} />
 						</h2>
 					</div>
 				</Card.Content>
@@ -81,4 +81,4 @@
 	{/if}
 </div>
 
-<StoryDeleteDialog storyId={data.story.id} data={data.deleteForm} bind:open={openDeleteDialog} />
+<!-- <StoryDeleteDialog storyId={data.story.id} data={data.deleteForm} bind:open={openDeleteDialog} /> -->

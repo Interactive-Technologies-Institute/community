@@ -614,6 +614,7 @@ export type Database = {
         Row: {
           id: number
           image: string[]
+          updated_at: string
           inserted_at: string
           insights_gpt: string | null
           pub_quotes: string[] | null

@@ -142,10 +142,12 @@ export type Story = {
 	storyteller: string;
 	user_id: string;
   inserted_at: string;
+	updated_at: string;
 	image: string[];
 	tags: string[];
 	role: CommunityRole;
   transcription: string;
+	recording_link: string;
 	pub_story_text: string[];
 	pub_quotes: string[];
 	pub_selected_images: string[];
