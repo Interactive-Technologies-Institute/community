@@ -69,9 +69,13 @@
 		<div
 			class="sticky bottom-0 flex w-full flex-row items-center justify-center gap-x-10 border-t bg-background/95 py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 		>
-			<Button variant="outline" href="/story/{data.story.id}/edit">
+			<Button variant="outline" href="/story/{data.story.id}/transcription">
 				<Pen class="mr-2 h-4 w-4" />
-				Edit Transcription
+				View Transcription
+			</Button>
+			<Button href="/story/{data.story.id}/preview">
+				<Pen class="mr-2 h-4 w-4" />
+				Preview Story
 			</Button>
 			<Button variant="destructive" on:click={() => (openDeleteDialog = true)}>
 				<Trash class="mr-2 h-4 w-4" />

@@ -1,5 +1,5 @@
 //import { deleteStorychema } from '@/schemas/story';
-import { PUBLIC_YOUTUBE_CLIENT_ID, PUBLIC_YOUTUBE_SECRET_KEY, PUBLIC_OPENAI_API_KEY, PUBLIC_CLOUDINARY_API_KEY, PUBLIC_CLOUDINARY_API_SECRET, PUBLIC_CLOUDINARY_CLOUD_NAME } from '$env/static/public';
+import { PUBLIC_OPENAI_API_KEY, PUBLIC_CLOUDINARY_API_KEY, PUBLIC_CLOUDINARY_API_SECRET, PUBLIC_CLOUDINARY_CLOUD_NAME } from '$env/static/public';
 import type { Story, ModerationInfo } from '@/types/types';
 import { handleFormAction } from '@/utils';
 import { error, fail, redirect } from '@sveltejs/kit';
@@ -11,7 +11,7 @@ import axios from 'axios';
 import { Readable } from 'stream';
 import OpenAI from "openai";
 
-// Configure Cloudinary with your credentials
+// Configure Cloudinary with credentials
 cloudinary.config({
   cloud_name: PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: PUBLIC_CLOUDINARY_API_KEY,
@@ -22,7 +22,6 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 
 export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
-	let transcription;
 	let mp4Url
 
 	function bufferToStream(buffer: ArrayBuffer) {
@@ -115,21 +114,28 @@ export const load = async (event) => {
       return error(500, errorMessage);
     }
 
-		if (!story.transcription) {
+		console.log(story)
+
+		if (story.recording_link.split('.').pop() === "mov") {
 			let movVideo = await getCloudinaryVideo(story.recording_link, "mov")
 			mp4Url = await toMp4(movVideo);
 			let mp4Video = await getCloudinaryVideo(mp4Url, "mp4")
 
-			transcription = await transcribe(mp4Video) 
+			//transcription = await transcribe(mp4Video) 
 
 			const {
 				recording_link,
+				moderation_status,
+				insights_gpt,
+				pub_story_text,
+				pub_quotes,
+				pub_selected_images,
 				...data
 			} = story;
 
 			const { error: supabaseError } = await event.locals.supabase
 					.from('story')
-					.update({ ...data, transcription: transcription, recording_link: mp4Url })
+					.update({ ...data, recording_link: mp4Url })
 					.eq('id', event.params.id);
 
 			if (supabaseError) {
@@ -137,12 +143,11 @@ export const load = async (event) => {
 				setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
 				return fail(500, { message: supabaseError.message });
 			}
-		} else {
-			console.log("eu entro aqui?")
-			return story;
+
+			return { ...story, recording_link: mp4Url };
 		}
 
-		const { data: newStory, error: newStoryError } = await event.locals.supabase
+		/* const { data: newStory, error: newStoryError } = await event.locals.supabase
 			.from('story')
 			.select('*')
 			.eq('id', id)
@@ -152,9 +157,9 @@ export const load = async (event) => {
       const errorMessage = `Error fetching story ${id}, please try again later.`;
       setFlash({ type: 'error', message: errorMessage }, event.cookies);
       return error(500, errorMessage);
-    }
+    } */
 		
-		return newStory;
+		return story;
 	}
 
 	async function getStoryModeration(id: string): Promise<ModerationInfo> {
