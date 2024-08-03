@@ -76,6 +76,7 @@
       const tempFormData = new FormData();
       tempFormData.append('file', video);
       tempFormData.append('upload_preset', 'bb-comunidade'); // Ensure you have an unsigned upload preset
+      
 
       // Make the request to Cloudinary's upload endpoint
       try {
@@ -125,7 +126,7 @@
       }
     }
 
-    newFormData.append("recording_link", videoUrl)
+    newFormData.append("recording_link", videoUrl.replace('.mov', '.mp4'));
     urls.forEach(url => newFormData.append('image', url));
 
     const response = await fetch('?/createStory', {

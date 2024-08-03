@@ -24,6 +24,12 @@ export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
 	let mp4Url
 
+	const getPublicId = (url) => {
+    const regex = /\/([^/]+)\.mp4$/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
 	function bufferToStream(buffer: ArrayBuffer) {
 		return new Readable({
 			read() {
@@ -32,8 +38,8 @@ export const load = async (event) => {
 			}
 		});
 	} 
-
-	async function toMp4(videoFile) {
+ 
+	async function toMp4(publicId, videoFile) {
 		try {
 			// Convert File to stream if needed
 			const buffer = await videoFile.arrayBuffer();
@@ -43,10 +49,12 @@ export const load = async (event) => {
 			const uploadResult = await new Promise((resolve, reject) => {
 				const uploadStream = cloudinary.uploader.upload_stream(
 					{
+						public_id: publicId,
 						resource_type: 'video',
 						format: 'mp4',
 						eager: [{ format: 'mp4' }],
 						eager_async: true,
+						overwrite: true,
 					},
 					(error, result) => {
 						if (error) return reject(error);
@@ -84,23 +92,6 @@ export const load = async (event) => {
 		}
 	}
 
-	// transcription
-	async function transcribe(audioFile) {
-		try {
-			const transcription = await openai.audio.transcriptions.create({
-				file: audioFile,
-				model: "whisper-1",
-				response_format: "text"
-			});
-
-			return transcription;
-
-		} catch (error) {
-			console.log("error in transcription", error)
-			return null;
-		}
-	}
-
 	async function getStory(id: string): Promise<Story> {
 		const { data: story, error: storyError } = await event.locals.supabase
 			.from('story_view')
@@ -114,16 +105,17 @@ export const load = async (event) => {
       return error(500, errorMessage);
     }
 
-		console.log(story)
-
-		if (story.recording_link.split('.').pop() === "mov") {
-			let movVideo = await getCloudinaryVideo(story.recording_link, "mov")
-			mp4Url = await toMp4(movVideo);
-			let mp4Video = await getCloudinaryVideo(mp4Url, "mp4")
+		let movVideo = await getCloudinaryVideo(story.recording_link.replace('.mp4', '.mov'), "mov");
+		mp4Url = await toMp4(getPublicId(story.recording_link), movVideo);
+		//if (movVideo.name.split('.').pop() === "mov") {
+		//	console.log("mov?")
+		//	console.log("mp4", mp4Url)
+			//mp4Url = await toMp4(getPublicId(story.recording_link));
+			//let mp4Video = await getCloudinaryVideo(mp4Url, "mp4")
 
 			//transcription = await transcribe(mp4Video) 
 
-			const {
+			/* const {
 				recording_link,
 				moderation_status,
 				insights_gpt,
@@ -134,7 +126,7 @@ export const load = async (event) => {
 			} = story;
 
 			const { error: supabaseError } = await event.locals.supabase
-					.from('story')
+					.from('story_view')
 					.update({ ...data, recording_link: mp4Url })
 					.eq('id', event.params.id);
 
@@ -144,8 +136,7 @@ export const load = async (event) => {
 				return fail(500, { message: supabaseError.message });
 			}
 
-			return { ...story, recording_link: mp4Url };
-		}
+			return { ...story, recording_link: mp4Url }; */
 
 		/* const { data: newStory, error: newStoryError } = await event.locals.supabase
 			.from('story')

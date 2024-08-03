@@ -16,6 +16,12 @@ const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY });
 export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
 
+  const getIdentifier = (url) => {
+    const regex = /\/([^/]+)\.jpg$/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
   async function getCloudinaryVideo(url, format) {
 		try {
 			// Fetch the audio data as a buffer
@@ -53,7 +59,7 @@ export const load = async (event) => {
 
 	async function getStoryInfo(id: string): Promise<String> {
     const { data: storyInfo, error: storyError } = await event.locals.supabase
-			.from('story_view')
+			.from('story')
 			.select('id, recording_link, transcription')
 			.eq('id', id)
 			.single();
@@ -68,11 +74,17 @@ export const load = async (event) => {
 
     if (!storyInfo.transcription) {
       let mp4Video = await getCloudinaryVideo(storyInfo.recording_link, "mp4")
-      let transcription = await transcribe(mp4Video) 
+      //cloudinary.video(getIdentifier(storyInfo.recording_link), {fetch_format: "mp4"})
+      let transc = await transcribe(mp4Video)
+
+			const {
+				transcription,
+				...data
+			} = storyInfo;
 
       const { error: supabaseError } = await event.locals.supabase
 					.from('story')
-					.update({transcription: transcription})
+					.update({transcription: transc})
 					.eq('id', event.params.id);
 
 			if (supabaseError) {
@@ -81,7 +93,7 @@ export const load = async (event) => {
 				return fail(500, { message: supabaseError.message });
 			}
 
-      return { ...storyInfo, transcription: transcription };
+			return { ...data, transcription: transc };
     }
 
     return storyInfo;
