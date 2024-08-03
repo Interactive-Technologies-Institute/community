@@ -105,8 +105,8 @@ export const load = async (event) => {
       return error(500, errorMessage);
     }
 
-		let movVideo = await getCloudinaryVideo(story.recording_link.replace('.mp4', '.mov'), "mov");
-		mp4Url = await toMp4(getPublicId(story.recording_link), movVideo);
+		//let movVideo = await getCloudinaryVideo(story.recording_link.replace('.mp4', '.mov'), "mov");
+		//mp4Url = await toMp4(getPublicId(story.recording_link), movVideo);
 		//if (movVideo.name.split('.').pop() === "mov") {
 		//	console.log("mov?")
 		//	console.log("mp4", mp4Url)
