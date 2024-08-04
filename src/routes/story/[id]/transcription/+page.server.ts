@@ -1,5 +1,6 @@
 import { PUBLIC_OPENAI_API_KEY, PUBLIC_CLOUDINARY_API_KEY, PUBLIC_CLOUDINARY_API_SECRET, PUBLIC_CLOUDINARY_CLOUD_NAME } from '$env/static/public';
 import { error, fail, redirect } from '@sveltejs/kit';
+import { setFlash } from 'sveltekit-flash-message/server';
 import { v2 as cloudinary } from 'cloudinary';
 import axios from 'axios';
 import OpenAI from "openai";
@@ -21,6 +22,11 @@ export const load = async (event) => {
     const match = url.match(regex);
     return match ? match[1] : null;
   }; */
+
+	const getExtension = (url) => {
+		const match = url.match(/\.([0-9a-z]+)(?:[\?#]|$)/i);
+		return match ? match[1] : null;
+	};
 
   async function getCloudinaryVideo(url, format) {
 		try {
@@ -57,7 +63,20 @@ export const load = async (event) => {
 
 		let videoFileTemp;
 
-    if (!storyInfo.transcription) {
+		if (getExtension(storyInfo.recording_link) === "mov") {
+			const { error: supabaseError } = await event.locals.supabase
+					.from('story')
+					.update({recording_link: storyInfo.recording_link.replace('.mov', '.mp4') })
+					.eq('id', event.params.id);
+
+			if (supabaseError) {
+				console.log(supabaseError)
+				setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
+				return fail(500, { message: supabaseError.message });
+			}
+		}
+
+    //if (!storyInfo.transcription) {
      /*  //let mp4Video = await getCloudinaryVideo(storyInfo.recording_link, "mp4")
 			console.log(getIdentifier(storyInfo.recording_link));
 			let mp4Url = await cloudinary.video(getIdentifier(storyInfo.recording_link), {fetch_format: "mp4"})
@@ -92,7 +111,7 @@ export const load = async (event) => {
 				return fail(500, { message: supabaseError.message });
 			}*/
 
-    } 
+    //} 
 
     return storyInfo;
   }

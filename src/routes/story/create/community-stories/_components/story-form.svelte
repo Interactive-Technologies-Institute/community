@@ -126,7 +126,7 @@
       }
     }
 
-    newFormData.append("recording_link", videoUrl.replace('.mov', '.mp4'));
+    newFormData.append("recording_link", videoUrl);
     urls.forEach(url => newFormData.append('image', url));
 
     const response = await fetch('?/createStory', {

@@ -35,8 +35,13 @@
 	}
 
 	const getIdentifier = (url) => {
-		const regex = /\/([^/]+)\.mp4$/;
+		const regex = /\/([^/]+)\.mov$/;
 		const match = url.match(regex);
+		return match ? match[1] : null;
+	};
+
+	const getExtension = (url) => {
+		const match = url.match(/\.([0-9a-z]+)(?:[\?#]|$)/i);
 		return match ? match[1] : null;
 	};
 
@@ -49,19 +54,34 @@
 
 	onMount(async () => {
 		//let mp4Url = await cloudinary.video(getIdentifier(data.story.recording_link), { fetch_format: "mp4" });
-		const mp4Url = `https://res.cloudinary.com/${PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/f_mp4/${getIdentifier(data.story.recording_link)}.mp4`
-		console.log(mp4Url);
-
-		getBlobFromUrl(mp4Url).then((blob) => {
-			let videoFileTemp = new File([blob], `audio_file.mp4`, { type: `video/mp4` });
-			console.log("transcription?", data.story.transcription)
-			if (!data.story.transcription) {
-				console.log("transcribing...")
-				transcribe(videoFileTemp).then((result) => {
-					transcription = result;
-				})
-			}
-		});
+		if(getExtension(data.story.recording_link) === "mov") {
+			console.log("eu converto")
+			const mp4Url = `https://res.cloudinary.com/${PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/f_mp4/${getIdentifier(data.story.recording_link)}.mp4`
+			console.log(mp4Url);
+	
+			getBlobFromUrl(mp4Url).then((blob) => {
+				let videoFileTemp = new File([blob], `audio_file.mp4`, { type: `video/mp4` });
+				console.log("transcription?", data.story.transcription)
+				if (!data.story.transcription) {
+					console.log("transcribing...")
+					transcribe(videoFileTemp).then((result) => {
+						transcription = result;
+					})
+				}
+			});
+		} else {
+			console.log("eu não preciso converter")
+			getBlobFromUrl(data.story.recording_link).then((blob) => {
+				let videoFileTemp = new File([blob], `audio_file.mp4`, { type: `video/mp4` });
+				console.log("transcription?", data.story.transcription)
+				if (!data.story.transcription) {
+					console.log("transcribing...")
+					transcribe(videoFileTemp).then((result) => {
+						transcription = result;
+					})
+				}
+			});
+		}
 	});
 
 </script>
