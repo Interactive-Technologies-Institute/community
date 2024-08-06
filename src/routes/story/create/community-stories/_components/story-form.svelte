@@ -15,7 +15,7 @@
   
   import Input from "$lib/components/ui/input/input.svelte";
 
-  import { ArrowRight, Loader2 } from "lucide-svelte";
+  import { ArrowLeft, ArrowRight, Check, Loader2, Camera } from "lucide-svelte";
   
   const questions = [
     "Fale-nos de si (o seu nome, idade, bairro onde vive)",
@@ -47,6 +47,9 @@
     const { form: formData, submitting, errors } = form;
 
     $formData.role = "community";
+    let recordingState = 'idle'; // states: 'idle', 'recorded'
+    let firstImageTaken = false;
+    let secondImageTaken = false;
 
 	  let createStoryForm: HTMLFormElement;
 
@@ -55,24 +58,36 @@
 
     function handleVideoUpload(event) {
       videoFile = event.target.files[0];
-      console.log("video", videoFile)
+      recordingState = 'recorded';
+      console.log("video", videoFile);
     }
 
     function handleImageUpload(event) {
       imageFiles.push(...event.target.files);
       console.log("images", imageFiles)
+      if (!firstImageTaken) {
+        firstImageTaken = true;
+      } else if (!secondImageTaken) {
+        secondImageTaken = true;
+      }
     }
+
+    const startRecording = () => {
+      document.getElementById('videoFile').click();
+    };
+
+    const deleteRecording = () => {
+      videoFile = null;
+      recordingState = 'idle';
+      document.getElementById('videoFile').value = null; // Clear the file input
+    };
 
   async function submitCreateStoryForm(event) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    //const file = formData.get('recording_link'); 
-    //const images = formData.getAll('image'); 
-    //console.log(images);
 
     async function uploadVideo(video, type) {
-      // Create a form data object to store the file and other parameters
       const tempFormData = new FormData();
       tempFormData.append('file', video);
       tempFormData.append('upload_preset', 'bb-comunidade'); // Ensure you have an unsigned upload preset
@@ -109,14 +124,6 @@
       urls.push(url);
     }
 
-    // Replace the 'images' field in formData with the array of URLs
-    //formData.delete('image');
-    //formData.delete('recording_link');
-    //urls.forEach(url => formData.append('image', url));
-
-    // Set recording_link field in formData
-   // formData.set('recording_link', videoUrl);
-
     let newFormData = new FormData();
 
     // Iterate over the entries of the original FormData
@@ -141,6 +148,19 @@
   console.log("Result:", result);
 
   applyAction(result);
+  } 
+
+  function triggerFileInput(id) {
+    document.getElementById(id).click();
+  }
+
+  function deleteImage(index) {
+    imageFiles.splice(index, 1);
+    if (index === 0) {
+      firstImageTaken = false;
+    } else {
+      secondImageTaken = false;
+    }
   }
 
 </script>
@@ -150,87 +170,187 @@
   .page.show { display: block; }
 </style>
 
-<form method="POST" action="?/createStory" bind:this={createStoryForm} on:submit|preventDefault={submitCreateStoryForm} enctype="multipart/form-data" class="flex flex-col gap-y-10">
-    <div class="page" class:show={page === 1}>
-      <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
-      <Form.Field {form} name="storyteller" class="text-center">
-        <Form.Control let:attrs>
-          <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Qual é o nome da pessoa?</Form.Label>
-          <span class="flex justify-center gap-2 inline-block pt-3">
-            <Input {...attrs} bind:value={$formData.storyteller}/>
-            <Form.FieldErrors />
-            <span><Button class="p-2" type="button" on:click={() => page = 2}><ArrowRight /></Button></span>
-          </span>
-        </Form.Control>
-      </Form.Field>
-    </div>
-
-    <div class="page" class:show={page === 2}>
-      <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
-      <Form.Field {form} name="tags" class="text-center">
-				<Form.Control let:attrs>
-          <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Em qual Balcão você está?</Form.Label>
-          <span class="flex justify-center gap-2 inline-block pt-3">
-            <Input {...attrs} bind:value={$formData.tags} />
-            <Form.FieldErrors />
-            <span><Button class="p-2" type="button" on:click={() => page = 3}><ArrowRight /></Button></span>
-          </span>
-				</Form.Control>
-			</Form.Field>
-
-      <Form.Field {form} hidden name="role" class="text-center">
-        <Form.Control let:attrs>
-          <input hidden name="role" bind:value={$formData.role} />
-          <Form.FieldErrors />
-        </Form.Control>
-      </Form.Field>
-
-    </div>
-
-    <div class="page" class:show={page === 3}>
-      <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
-        <Carousel.Root>
-          <Carousel.Content>
-            {#each questions as question}
-              <Carousel.Item class="w-full">
-                <div class="text-center p-2">
-                  <span class="text-sm font-semibold">{question}</span>
-                </div>
-              </Carousel.Item>
-            {/each}
-          </Carousel.Content>
-          <Carousel.Previous />
-          <Carousel.Next />
-        </Carousel.Root>
-      </div>
-      <div class="mt-4 text-center">
-        <Form.Field {form} name="recording_link" class="text-center">
+<div class="container mx-auto space-y-10 pb-10">
+  <form method="POST" action="?/createStory" bind:this={createStoryForm} on:submit|preventDefault={submitCreateStoryForm} enctype="multipart/form-data" class="flex flex-col gap-y-10">
+      <div class="page" class:show={page === 1}>
+        <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
+        <Form.Field {form} name="storyteller" class="text-center">
           <Form.Control let:attrs>
-            <label for="videoFile">Upload a video:</label>
+            <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Qual é o nome da pessoa?</Form.Label>
             <span class="flex justify-center gap-2 inline-block pt-3">
-              <input type="file" accept="video/*" on:change={handleVideoUpload} />
+              <Input {...attrs} bind:value={$formData.storyteller} required/>
               <Form.FieldErrors />
-              <span><Button class="p-2" on:click={() => page = 4}><ArrowRight /></Button></span>
+              <span><Button class="p-2" type="button" on:click={() => page = 2}><ArrowRight /></Button></span>
             </span>
           </Form.Control>
         </Form.Field>
       </div>
-    </div>
 
-    <div class="page" class:show={page === 4}>
-      <Form.Field {form} name="image" class="text-center">
-        <Form.Control let:attrs>
-          <input type="file" on:change={handleImageUpload} capture="environment" accept="image/*" />
-          <input type="file" on:change={handleImageUpload} capture="environment" accept="image/*" />
-        </Form.Control>
-      </Form.Field>
-      <div class="mt-28 text-center">
-        <Button type="submit" disabled={$submitting }>
-          {#if $submitting}
-            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-          {/if}
-          Guardar História
-        </Button>
+      <div class="page" class:show={page === 2}>
+        <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
+        <Form.Field {form} name="tags" class="text-center">
+          <Form.Control let:attrs>
+            <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Em qual Balcão você está?</Form.Label>
+            <span class="flex justify-center gap-2 inline-block pt-3">
+              <Input {...attrs} bind:value={$formData.tags} required/>
+              <Form.FieldErrors />
+              <span><Button class="p-2" type="button" on:click={() => page = 3}><ArrowRight /></Button></span>
+            </span>
+          </Form.Control>
+        </Form.Field>
+
+        <Form.Field {form} hidden name="role" class="text-center">
+          <Form.Control let:attrs>
+            <input hidden name="role" bind:value={$formData.role} />
+            <Form.FieldErrors />
+          </Form.Control>
+        </Form.Field>
+
       </div>
-    </div>
-</form>
+
+      <div class="page" class:show={page === 3}>
+        <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
+          <Carousel.Root>
+            <Carousel.Content>
+              {#each questions as question}
+                <Carousel.Item class="w-full">
+                  <div class="text-center p-2">
+                    <span class="text-sm font-semibold">{question}</span>
+                  </div>
+                </Carousel.Item>
+              {/each}
+            </Carousel.Content>
+            <Carousel.Previous />
+            <Carousel.Next />
+          </Carousel.Root>
+        </div>
+        <div class="mt-4 text-center">
+          <Form.Field {form} name="recording_link" class="text-center">
+            <Form.Control let:attrs>
+              <div class="flex flex-col items-center gap-2">
+                <input
+                  type="file"
+                  accept="video/*"
+                  id="videoFile"
+                  on:change={handleVideoUpload}
+                  class="hidden"
+                />
+                <div class="flex items-center gap-2">
+                  {#if recordingState === 'idle'}
+                    <Button
+                      type="button"
+                      class="p-2 bg-black text-white cursor-pointer text-sm"
+                      on:click={startRecording}
+                    >
+                      Iniciar gravação
+                    </Button>
+                  {:else if recordingState === 'recorded'}
+                    <Button
+                      type="button"
+                      class="p-2 bg-red-500 text-white cursor-pointer text-sm"
+                      on:click={deleteRecording}
+                    >
+                      Refazer gravação
+                    </Button>
+                  {/if}
+                  <Button class="p-2" on:click={() => page = 4} disabled={recordingState === 'recording' || recordingState === 'idle'}>
+                    <ArrowRight />
+                  </Button>
+                </div>
+                <Form.FieldErrors />
+              </div>
+            </Form.Control>
+          </Form.Field>
+        </div>
+      </div>
+
+      <div class="page" class:show={page === 4}>
+        <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
+        <Form.Field {form} name="image" class="text-center">
+          <Form.Control let:attrs>
+            <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Tire duas fotografias da pessoa.</Form.Label>
+            <div class="flex flex-col items-center gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                id="firstImageFile"
+                capture="environment"
+                on:change={handleImageUpload}
+                class="hidden"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                id="secondImageFile"
+                capture="environment"
+                on:change={handleImageUpload}
+                class="hidden"
+              />
+              <div class="flex items-center gap-2">
+                {#if !firstImageTaken}
+                  <Button
+                    type="button"
+                    class="p-2 bg-black text-white cursor-pointer text-sm"
+                    on:click={() => triggerFileInput('firstImageFile')}
+                  >
+                    <Camera class="mr-2 h-4 w-4" />
+                    Tirar Primeira Fotografia
+                  </Button>
+                {:else if !secondImageTaken}
+                  <Button
+                    type="button"
+                    class="p-2 bg-black text-white cursor-pointer text-sm"
+                    on:click={() => triggerFileInput('secondImageFile')}
+                  >
+                    <Camera class="mr-2 h-4 w-4" />
+                    Tirar Segunda Fotografia
+                  </Button>
+                {/if}
+              </div>
+              {#if imageFiles.length > 1}
+              <!-- <div class="flex mt-4 gap-4">
+                {#each imageFiles as image, index}
+                  <div class="relative">
+                    <img src={image} alt={`Fotografia ${index + 1}`} class="w-16 h-16 object-cover border rounded" />
+                    <button
+                      type="button"
+                      class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 cursor-pointer"
+                      on:click={() => deleteImage(index)}
+                    >
+                      x
+                    </button>
+                  </div>
+                {/each}
+              </div> -->
+              <Check class="h-4 w-4 text-green-600" />
+              <p class="text-green-600">Fotografias guardadas</p>
+              {/if}
+            </div>
+          </Form.Control>
+        </Form.Field>
+
+        <!-- <Form.Field {form} name="image" class="text-center">
+          <Form.Control let:attrs>
+            <input type="file" on:change={handleImageUpload} capture="environment" accept="image/*" />
+            <input type="file" on:change={handleImageUpload} capture="environment" accept="image/*" />
+          </Form.Control>
+        </Form.Field> -->
+        <div class="mt-28 text-center">
+          <Button type="submit" disabled={$submitting }>
+            {#if $submitting}
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+            {/if}
+            Guardar História
+          </Button>
+        </div>
+      </div>
+  </form>
+  <div
+    class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+  >
+    <Button variant="outline" on:click={() => (page > 1? page = page - 1 : page)} class="w-full sm:w-auto">
+      <ArrowLeft class="mr-2 h-4 w-4" />
+      Voltar
+    </Button>
+  </div>
+</div>

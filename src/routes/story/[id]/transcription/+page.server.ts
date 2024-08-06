@@ -52,8 +52,6 @@ export const load = async (event) => {
 			.select('id, recording_link, transcription')
 			.eq('id', id)
 			.single();
-    
-      console.log(storyInfo)
 
     if (storyError) {
       const errorMessage = `Error fetching video link, please try again later.`;
@@ -61,9 +59,9 @@ export const load = async (event) => {
       return error(500, errorMessage);
     }
 
-		let videoFileTemp;
+		//let videoFileTemp;
 
-		if (getExtension(storyInfo.recording_link) === "mov") {
+		/* if (getExtension(storyInfo.recording_link) === "mov") {
 			const { error: supabaseError } = await event.locals.supabase
 					.from('story')
 					.update({recording_link: storyInfo.recording_link.replace('.mov', '.mp4') })
@@ -74,7 +72,7 @@ export const load = async (event) => {
 				setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
 				return fail(500, { message: supabaseError.message });
 			}
-		}
+		} */
 
     //if (!storyInfo.transcription) {
      /*  //let mp4Video = await getCloudinaryVideo(storyInfo.recording_link, "mp4")
