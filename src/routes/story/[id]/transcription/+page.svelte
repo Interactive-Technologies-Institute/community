@@ -5,13 +5,12 @@
 	import PageHeader from '@/components/page-header.svelte';
 	import { Button } from '@/components/ui/button';
 	import * as Card from "$lib/components/ui/card";
-	import { BarChart2, CircleUser, Clock, Footprints, Pen, Tag, Trash } from 'lucide-svelte';
-	import { ArrowLeft, ArrowDownUp } from 'lucide-svelte';
+	import { ArrowLeft, Pen } from 'lucide-svelte';
 	/* 	import UsefulButton from './_components/useful-button.svelte'; */
 	import OpenAI from "openai";
 
 	export let data;
-	console.log(data.story.recording_link)
+	/* console.log(data.story.recording_link)
 
 	
 	const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
@@ -82,21 +81,26 @@
 				}
 			});
 		}
-	});
+	}); */
 
 </script>
 
 <PageHeader title={"Transcrição"} subtitle="" />
 <div class="container mx-auto space-y-10 pb-10">
-	{#if transcription !== ''}
-  	<p>{transcription}</p>
+	{#if data.story.transcription !== ''}
+  	<p>{data.story.transcription}</p>
 	{/if}
 
 	<div
 		class="sticky bottom-0 flex w-full flex-row items-center justify-center gap-x-10 border-t bg-background/95 py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 	>
-		<Button variant="outline" href="/story/{data.story.id}">
+		<Button variant="outline" href="/story/{data.story.id}"  class="w-full sm:w-auto">
+			<ArrowLeft class="mr-2 h-4 w-4" />
 			Voltar
+		</Button>
+		<Button href="/story/{data.story.id}/edit-transcription">
+			<Pen class="mr-2 h-4 w-4" />
+			Editar transcrição
 		</Button>
 	</div>
 </div>
