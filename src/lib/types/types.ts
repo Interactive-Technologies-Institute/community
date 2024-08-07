@@ -158,3 +158,8 @@ export type StoryWithTranscription = {
 	recording_link: string;
 	transcription: string;
 };
+
+export type StoryWithInsights = {
+	insights: string;
+	transcription: string;
+};

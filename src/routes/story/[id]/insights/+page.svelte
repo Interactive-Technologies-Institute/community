@@ -7,10 +7,10 @@
 
 </script>
 
-<PageHeader title={"Transcrição"} subtitle="" />
+<PageHeader title={"Insights"} subtitle="" />
 <div class="container mx-auto space-y-10 pb-10">
-	{#if data.story.transcription !== ''}
-  	<p>{data.story.transcription}</p>
+	{#if data.story.insights_gpt !== ''}
+  	<p>{data.story.insights_gpt}</p>
 	{/if}
 
 	<div
@@ -20,9 +20,9 @@
 			<ArrowLeft class="mr-2 h-4 w-4" />
 			Voltar
 		</Button>
-		<Button href="/story/{data.story.id}/edit-transcription">
+		<Button href="/story/{data.story.id}/edit-insights">
 			<Pen class="mr-2 h-4 w-4" />
-			Editar transcrição
+			Editar insights
 		</Button>
 	</div>
 </div>

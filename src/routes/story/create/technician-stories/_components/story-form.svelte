@@ -1,17 +1,19 @@
 <script lang="ts">
+    import { applyAction, deserialize, enhance } from '$app/forms';
   import { Button } from "$lib/components/ui/button";
   import * as Form from '$lib/components/ui/form';
+  import * as Carousel from "$lib/components/ui/carousel/index.js";
   import { createStorySchema, type CreateStorySchema } from '$lib/schemas/story';
+  import { PUBLIC_CLOUDINARY_CLOUD_NAME  } from '$env/static/public'
   
   import { superForm, type SuperValidated } from 'sveltekit-superforms';
   import { zodClient, type Infer } from 'sveltekit-superforms/adapters';
 
-  import * as Carousel from "$lib/components/ui/carousel/index.js";
-
-  import VideoAudio from "./video-audio.svelte";
+  import { Cloudinary } from "@cloudinary/url-gen";
+  
   import Input from "$lib/components/ui/input/input.svelte";
-  import { ArrowRight, Loader2 } from "lucide-svelte";
-  import Camera from "./camera.svelte";
+
+  import { ArrowLeft, ArrowRight, Check, Loader2, Camera } from "lucide-svelte";
 
   const questions = [
     "Fale-nos de si (o seu nome, idade, o que faz no Balcão do Bairro)",
@@ -24,9 +26,6 @@
   let altImg = 'Taking notes'
   
   let page = 1;
-  let recording;
-  let audio;
-  let images = [];
   
   export let data: SuperValidated<Infer<CreateStorySchema>>;
     
@@ -40,50 +39,113 @@
 
     $formData.role = "technician";
     
-    async function handleUpdateStep(event) {
-      page = event.detail.page;
-      recording = event.detail.file;
-      audio = event.detail.audio;
-      $formData.recording = recording;
-      $formData.recording_link = "";
-      updateHiddenFileInput(recording);
-      updateHiddenAudioFileInput(audio);
-    }
-  
-    $: imageInputElements = Array(3).fill(null);
-    let fileInputElement;
-    let audioFileInputElement;
+    let recordingState = 'idle'; // states: 'idle', 'recorded'
+  let firstImageTaken = false;
+  let secondImageTaken = false;
 
-    async function handleImagesCaptured(event) {
-      images = event.detail.images;
-      if (images.length > 2) {
-        updateHiddenImageInputs(images);
+	  let createStoryForm: HTMLFormElement;
+
+    let videoFile;
+    $: imageFiles = [];
+
+    function handleVideoUpload(event) {
+      videoFile = event.target.files[0];
+      recordingState = 'recorded';
+      console.log("video", videoFile);
+    }
+
+    function handleImageUpload(event) {
+      imageFiles.push(...event.target.files);
+      console.log("images", imageFiles)
+      if (!firstImageTaken) {
+        firstImageTaken = true;
+      } else if (!secondImageTaken) {
+        secondImageTaken = true;
       }
     }
-    
-    function updateHiddenFileInput(file) {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      fileInputElement.files = dataTransfer.files;
+
+    const startRecording = () => {
+      document.getElementById('videoFile').click();
+    };
+
+    const deleteRecording = () => {
+      videoFile = null;
+      recordingState = 'idle';
+      document.getElementById('videoFile').value = null; // Clear the file input
+    };
+
+  async function submitCreateStoryForm(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+
+    async function uploadVideo(video, type) {
+      const tempFormData = new FormData();
+      tempFormData.append('file', video);
+      tempFormData.append('upload_preset', 'bb-comunidade');
+      
+
+      // Make the request to Cloudinary's upload endpoint
+      try {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${PUBLIC_CLOUDINARY_CLOUD_NAME}/${type}/upload`, {
+          method: 'POST',
+          body: tempFormData,
+        });
+
+        const data = await response.json();
+
+        return data.secure_url;
+
+      } catch (error) {
+        console.error('Error uploading the video:', error);
+        return null;
+      }
     }
 
-    function updateHiddenAudioFileInput(file) {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      audioFileInputElement.files = dataTransfer.files;
+    const videoUrl = await uploadVideo(videoFile, "video");
+
+    if (!videoUrl) {
+      console.error('Failed to upload video');
+      return;
     }
 
-    function updateHiddenImageInputs(files) {
-      console.log(files)
-      files.forEach((file, index) => {
-        if (imageInputElements[index]) {
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          imageInputElements[index].files = dataTransfer.files;
-        }
-      });
+    const urls = [];
+
+    for (const image of imageFiles) {
+      const url = await uploadVideo(image, "image");
+      urls.push(url);
     }
 
+    // formData to send to server
+
+    let newFormData = new FormData();
+
+    // Iterate over the entries of the original FormData
+    for (let [key, value] of formData.entries()) {
+      if (key !== "image" || key !== "recording_link") {
+        newFormData.append(key, value);
+      }
+    }
+
+    newFormData.append("recording_link", videoUrl);
+    urls.forEach(url => newFormData.append('image', url));
+
+    const response = await fetch('?/createStory', {
+      method: 'POST',
+      body: newFormData,
+      headers: {
+        'x-sveltekit-action': 'true'
+      }
+    });
+
+    const result =  deserialize(await response.text());
+
+    applyAction(result);
+  } 
+
+  function triggerFileInput(id) {
+    document.getElementById(id).click();
+  }
 </script>
 
 <style>
@@ -91,98 +153,167 @@
   .page.show { display: block; }
 </style>
 
-<form method="POST" enctype="multipart/form-data" class="flex flex-col gap-y-10" >
-    <div class="page" class:show={page === 1}>
-      <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
-      <Form.Field {form} name="storyteller" class="text-center">
-        <Form.Control let:attrs>
-          <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Qual é o nome da pessoa?</Form.Label>
-          <span class="flex justify-center gap-2 inline-block pt-3">
-            <Input {...attrs} bind:value={$formData.storyteller}/>
-            <Form.FieldErrors />
-            <span><Button class="p-2" type="button" on:click={() => page = 2}><ArrowRight /></Button></span>
-          </span>
-        </Form.Control>
-      </Form.Field>
-
-      <Form.Field {form} hidden name="recording" class="text-center">
-        <Form.Control let:attrs>
-          <input hidden type="file" name="recording" bind:this={fileInputElement} />
-          <Form.FieldErrors />
-        </Form.Control>
-      </Form.Field>
-
-      <Form.Field {form} hidden name="audio" class="text-center">
-        <Form.Control let:attrs>
-          <input hidden type="file" name="audio" bind:this={audioFileInputElement} />
-          <Form.FieldErrors />
-        </Form.Control>
-      </Form.Field>
-    
-        <Form.Field {form} hidden name="image_1" class="text-center">
+<div class="container mx-auto space-y-10 pb-10">
+  <form method="POST" action="?/createStory" bind:this={createStoryForm} on:submit|preventDefault={submitCreateStoryForm} enctype="multipart/form-data" class="flex flex-col gap-y-10">
+      <div class="page" class:show={page === 1}>
+        <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
+        <Form.Field {form} name="storyteller" class="text-center">
           <Form.Control let:attrs>
-              <input hidden type="file" name="image_1" bind:this={imageInputElements[0]}  />
+            <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Qual é o nome da pessoa?</Form.Label>
+            <span class="flex justify-center gap-2 inline-block pt-3">
+              <Input class="w-auto" {...attrs} bind:value={$formData.storyteller} required/>
+              <Form.FieldErrors />
+              <span><Button class="p-2" type="button" on:click={() => page = 2}><ArrowRight /></Button></span>
+            </span>
+          </Form.Control>
+        </Form.Field>
+      </div>
+
+      <div class="page" class:show={page === 2}>
+        <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
+        <Form.Field {form} name="tags" class="text-center">
+          <Form.Control let:attrs>
+            <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Em qual Balcão você está?</Form.Label>
+            <span class="flex justify-center gap-2 inline-block pt-3">
+              <Input class="w-auto" {...attrs} bind:value={$formData.tags} required/>
+              <Form.FieldErrors />
+              <span><Button class="p-2" type="button" on:click={() => page = 3}><ArrowRight /></Button></span>
+            </span>
+          </Form.Control>
+        </Form.Field>
+
+        <Form.Field {form} hidden name="role" class="text-center">
+          <Form.Control let:attrs>
+            <input hidden name="role" bind:value={$formData.role} />
             <Form.FieldErrors />
           </Form.Control>
         </Form.Field>
-        <Form.Field {form} hidden name="image_2" class="text-center">
-          <Form.Control let:attrs>
-              <input hidden type="file" name="image_2" bind:this={imageInputElements[1]}  />
-            <Form.FieldErrors />
-          </Form.Control>
-        </Form.Field>
-        <Form.Field {form} hidden name="image_3" class="text-center">
-          <Form.Control let:attrs>
-              <input hidden type="file" name="image_3" bind:this={imageInputElements[2]}  />
-            <Form.FieldErrors />
-          </Form.Control>
-        </Form.Field>
-    </div>
 
-    <div class="page" class:show={page === 2}>
-      <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
-      <Form.Field {form} name="tags" class="text-center">
-				<Form.Control let:attrs>
-          <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Em qual Balcão você está?</Form.Label>
-          <span class="flex justify-center gap-2 inline-block pt-3">
-            <Input {...attrs} bind:value={$formData.tags} />
-            <Form.FieldErrors />
-            <span><Button class="p-2" type="button" on:click={() => page = 3}><ArrowRight /></Button></span>
-          </span>
-				</Form.Control>
-			</Form.Field>
-    </div>
+      </div>
 
-    <div class="page" class:show={page === 3}>
-      <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
-        <Carousel.Root>
-          <Carousel.Content>
-            {#each questions as question}
-              <Carousel.Item class="w-full">
-                <div class="text-center p-2">
-                  <span class="text-sm font-semibold">{question}</span>
+      <div class="page" class:show={page === 3}>
+        <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
+          <Carousel.Root>
+            <Carousel.Content>
+              {#each questions as question}
+                <Carousel.Item class="w-full">
+                  <div class="text-center p-2">
+                    <span class="text-sm font-semibold">{question}</span>
+                  </div>
+                </Carousel.Item>
+              {/each}
+            </Carousel.Content>
+            <Carousel.Previous />
+            <Carousel.Next />
+          </Carousel.Root>
+        </div>
+        <div class="mt-4 text-center">
+          <Form.Field {form} name="recording_link" class="text-center">
+            <Form.Control let:attrs>
+              <div class="flex flex-col items-center gap-2">
+                <input
+                  type="file"
+                  accept="video/*"
+                  id="videoFile"
+                  on:change={handleVideoUpload}
+                  class="hidden"
+                />
+                <div class="flex items-center gap-2">
+                  {#if recordingState === 'idle'}
+                    <Button
+                      type="button"
+                      class="p-2 bg-black text-white cursor-pointer text-sm"
+                      on:click={startRecording}
+                    >
+                      Iniciar gravação
+                    </Button>
+                  {:else if recordingState === 'recorded'}
+                    <Button
+                      type="button"
+                      class="p-2 bg-red-500 text-white cursor-pointer text-sm"
+                      on:click={deleteRecording}
+                    >
+                      Refazer gravação
+                    </Button>
+                  {/if}
+                  <Button class="p-2" on:click={() => page = 4} disabled={recordingState === 'recording' || recordingState === 'idle'}>
+                    <ArrowRight />
+                  </Button>
                 </div>
-              </Carousel.Item>
-            {/each}
-          </Carousel.Content>
-          <Carousel.Previous />
-          <Carousel.Next />
-        </Carousel.Root>
+                <Form.FieldErrors />
+              </div>
+            </Form.Control>
+          </Form.Field>
+        </div>
       </div>
-      <div class="mt-4 text-center">
-        <VideoAudio {page} on:updateStep={handleUpdateStep} />
-      </div>
-    </div>
 
-    <div class="page" class:show={page === 4}>
-      <Camera bind:capturedImages={images} on:imagesCaptured={handleImagesCaptured}/>
-      <div class="mt-28 text-center">
-        <Button type="submit" disabled={$submitting ||images.length < 3}>
-          {#if $submitting}
-            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-          {/if}
-          Guardar História
-        </Button>
+      <div class="page" class:show={page === 4}>
+        <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>
+        <Form.Field {form} name="image" class="text-center">
+          <Form.Control let:attrs>
+            <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Tire duas fotografias da pessoa.</Form.Label>
+            <div class="flex flex-col items-center gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                id="firstImageFile"
+                capture="environment"
+                on:change={handleImageUpload}
+                class="hidden"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                id="secondImageFile"
+                capture="environment"
+                on:change={handleImageUpload}
+                class="hidden"
+              />
+              <div class="flex items-center gap-2">
+                {#if !firstImageTaken}
+                  <Button
+                    type="button"
+                    class="p-2 bg-black text-white cursor-pointer text-sm"
+                    on:click={() => triggerFileInput('firstImageFile')}
+                  >
+                    <Camera class="mr-2 h-4 w-4" />
+                    Tirar Primeira Fotografia
+                  </Button>
+                {:else if !secondImageTaken}
+                  <Button
+                    type="button"
+                    class="p-2 bg-black text-white cursor-pointer text-sm"
+                    on:click={() => triggerFileInput('secondImageFile')}
+                  >
+                    <Camera class="mr-2 h-4 w-4" />
+                    Tirar Segunda Fotografia
+                  </Button>
+                {/if}
+              </div>
+              {#if imageFiles.length > 1}
+              <Check class="h-4 w-4 text-green-600" />
+              <p class="text-green-600">Fotografias guardadas</p>
+              {/if}
+            </div>
+          </Form.Control>
+        </Form.Field>
+
+        <div class="mt-28 text-center">
+          <Button type="submit" disabled={$submitting }>
+            {#if $submitting}
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+            {/if}
+            Guardar História
+          </Button>
+        </div>
       </div>
-    </div>
-</form>
+  </form>
+  <div
+    class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+  >
+    <Button variant="outline" on:click={() => (page > 1? page = page - 1 : page)} class="w-full sm:w-auto">
+      <ArrowLeft class="mr-2 h-4 w-4" />
+      Voltar
+    </Button>
+  </div>
+</div>

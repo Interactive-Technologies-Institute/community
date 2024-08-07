@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { PUBLIC_OPENAI_API_KEY, PUBLIC_CLOUDINARY_CLOUD_NAME } from '$env/static/public';
-	import { afterUpdate, onMount } from 'svelte';
+	import { applyAction, deserialize } from '$app/forms';
+	import { PUBLIC_CLOUDINARY_CLOUD_NAME, PUBLIC_OPENAI_API_KEY } from '$env/static/public';
 	import PageHeader from '@/components/page-header.svelte';
 	import { Button } from '@/components/ui/button';
-  import * as Form from '@/components/ui/form';
+	import * as Form from '@/components/ui/form';
+	import { updateStoryInsightsSchema, type UpdateStoryInsightsSchema } from '@/schemas/story-insights';
 	import { PencilLine } from 'lucide-svelte';
 	import OpenAI from "openai";
-	import { updateStoryTranscriptionSchema, type UpdateStoryTranscriptionSchema } from '@/schemas/story-transcription';
+	import { afterUpdate, onMount } from 'svelte';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { applyAction, deserialize } from '$app/forms';
 
-	export let data: SuperValidated<Infer<UpdateStoryTranscriptionSchema>>;
+	export let data: SuperValidated<Infer<UpdateStoryInsightsSchema>>;
 
 	const form = superForm(data, {
-    validators: zodClient(updateStoryTranscriptionSchema),
+    validators: zodClient(updateStoryInsightsSchema),
 		taintedMessage: true,
 		dataType: 'json',
 		resetForm: false,
@@ -26,11 +26,11 @@
 
 	
 	const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
-	$: transcription = "";
+  $: insights = ""
+  $: transcription = ""
 	let textarea: HTMLTextAreaElement;
 
-
-	async function transcribe(audioFile) {
+  async function transcribe(audioFile) {
 		try {
 			const transcription = await openai.audio.transcriptions.create({
 				file: audioFile,
@@ -42,6 +42,33 @@
 
 		} catch (error) {
 			console.log("error in transcription", error)
+			return null;
+		}
+	}
+
+	async function generate_insights(transcription:string) {
+		try {
+			const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            "role": "system",
+            "content": "Eu tenho uma transcrição de uma atendente e um cliente. A atendente faz as seguintes perguntas: Fale-nos de si (o seu nome, idade, bairro onde vive), Fale-nos de um problema que o Balcão o ajudou a resolver e das consequências desse problema, Diga-nos como o Balcão o ajudou a resolver o problema, especificando ao máximo os passos e todas as barreiras que enfrentou, Diz-nos como te sentiste quando o Balcão te ajudou, qual foi o impacto na tua vida?, Como resolverias isso se o Balcão não existisse? Seria mais fácil ou mais difícil? A partir da transcrição, diga quais são os pontos fortes do balcão e quais pontos precisam ser melhorados. No máximo 3 de cada e escolha os mais importantes e relevantes."
+          },
+          {
+            "role": "user",
+            "content": transcription
+          }
+        ],
+        temperature: 1,
+        max_tokens: 1600,
+        top_p: 1,
+      });
+
+			return response;
+
+		} catch (error) {
+			console.log("error in generating insights", error)
 			return null;
 		}
 	}
@@ -66,7 +93,7 @@
 
 
 onMount(async () => {
-  const formData = $formData.updateTranscriptionForm.data;
+  const formData = $formData.updateInsightsForm.data;
 
   const transcribeRecording = async (recordingLink: string) => {
       const extension = getExtension(recordingLink);
@@ -93,11 +120,17 @@ onMount(async () => {
       try {
           const transcriptionResult = await transcribeRecording(formData.recording_link);
           transcription = transcriptionResult;
+          insights = await generate_insights(transcription);
       } catch (error) {
           console.error("Failed to transcribe recording:", error);
       }
   } else {
-		transcription = formData.transcription;
+    if (formData.insights) {
+      insights = formData.insights;
+    } else {
+      let insightsResult = await generate_insights(formData.transcription);
+      insights = insightsResult.choices[0].message.content
+    }
 	}
 
   afterUpdate(() => {
@@ -115,8 +148,11 @@ onMount(async () => {
 
 		let newFormData = new FormData();
 
-    newFormData.append("recording_link", $formData.updateTranscriptionForm.data.recording_link);
-    newFormData.append("transcription", transcription);
+    if (!$formData.updateInsightsForm.data.transcription) {
+      newFormData.append("transcription", transcription);
+    }
+
+    newFormData.append("insights_gpt", insights);
 
     const response = await fetch('?/updateStory', {
       method: 'POST',
@@ -138,17 +174,17 @@ onMount(async () => {
 
 </script>
 
-<PageHeader title={"Transcrição"} subtitle="" />
+<PageHeader title={"Insights"} subtitle="" />
 <form method="POST" action="?/updateStory" bind:this={updateStoryForm} on:submit|preventDefault={submitUpdateStoryForm}>
   <div class="container mx-auto space-y-10 pb-10">
-    {#if transcription === ''}
+    {#if insights === ''}
 			<PencilLine class="h-32 w-32 mx-auto" />
-      <h2 class="mb-2 text-2xl font-medium text-center">A gerar transcrição...</h2>
+      <h2 class="mb-2 text-2xl font-medium text-center">A gerar insights...</h2>
       <p class="text-center">Por favor, não recarregue a página.</p>
     {:else}
-      <Form.Field {form} name="transcription">
+      <Form.Field {form} name="insights_gpt">
         <Form.Control let:attrs>
-          <textarea {...attrs} bind:value={transcription} class="w-full h-32 p-2 border rounded resize-none" bind:this={textarea} on:input={() => adjustTextareaHeight(textarea)}></textarea>
+          <textarea {...attrs} bind:value={insights} class="w-full h-32 p-2 border rounded resize-none" bind:this={textarea} on:input={() => adjustTextareaHeight(textarea)}></textarea>
           <Form.FieldErrors />
         </Form.Control>
       </Form.Field>

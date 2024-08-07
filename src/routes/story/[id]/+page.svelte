@@ -4,15 +4,14 @@
 	import { Button } from '@/components/ui/button';
 	import * as Card from "$lib/components/ui/card";
 	import { LayoutPanelTop, Wand, Eye, Pen, Tag, Trash } from 'lucide-svelte';
-	import StoryDeleteDialog from './_components/story-delete-dialog.svelte';
-	/* 	import UsefulButton from './_components/useful-button.svelte'; */
+//	import StoryDeleteDialog from './_components/story-delete-dialog.svelte';
 
 	export let data;
 
 	let openDeleteDialog = false;
 </script>
 
-<PageHeader title={data.story.storyteller} subtitle="" />
+<PageHeader title={data.story.storyteller} subtitle={data.story.role === 'technician' ? 'Técnico' : 'Comunidade'} />
 <div class="container mx-auto space-y-10 pb-10">
 	{#if data.moderation.status !== 'approved'}
 		<ModerationBanner moderation={data.moderation} />
@@ -62,23 +61,34 @@
 		class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 	>
 		{#if data.story.transcription}
-				<Button variant="outline" href="/story/{data.story.id}/transcription" class="w-full sm:w-auto">
+				<Button href="/story/{data.story.id}/transcription" class="w-full sm:w-auto">
 						<Eye class="mr-2 h-4 w-4" />
-						View Transcription
+						Abrir Transcrição
 				</Button>
 		{:else}
-				<Button variant="outline" href="/story/{data.story.id}/edit-transcription" class="w-full sm:w-auto">
+				<Button href="/story/{data.story.id}/edit-transcription" class="w-full sm:w-auto">
 						<Wand class="mr-2 h-4 w-4" />
-						Generate Transcription
+						Gerar Transcrição
+				</Button>
+		{/if}
+		{#if data.story.insights_gpt}
+				<Button href="/story/{data.story.id}/insights" class="w-full sm:w-auto">
+						<Eye class="mr-2 h-4 w-4" />
+						Abrir Insights
+				</Button>
+		{:else}
+				<Button href="/story/{data.story.id}/edit-insights" class="w-full sm:w-auto">
+						<Wand class="mr-2 h-4 w-4" />
+						Gerar Insights
 				</Button>
 		{/if}
 		<Button href="/story/{data.story.id}/preview" class="w-full sm:w-auto">
 				<LayoutPanelTop class="mr-2 h-4 w-4" />
-				Preview Story
+				Pré-visualizar história
 		</Button>
 		<Button variant="destructive" on:click={() => (openDeleteDialog = true)} class="w-full sm:w-auto">
 				<Trash class="mr-2 h-4 w-4" />
-				Delete
+				Excluir
 		</Button>
 	</div>
 	{/if}

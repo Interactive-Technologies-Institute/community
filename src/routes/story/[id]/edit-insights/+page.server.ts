@@ -1,12 +1,12 @@
 import { PUBLIC_OPENAI_API_KEY, PUBLIC_CLOUDINARY_API_KEY, PUBLIC_CLOUDINARY_API_SECRET, PUBLIC_CLOUDINARY_CLOUD_NAME } from '$env/static/public';
-import { updateStoryTranscriptionSchema } from '@/schemas/story-transcription';
+import { updateStoryInsightsSchema } from '@/schemas/story-insights';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 import { handleFormAction } from '@/utils';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import axios from 'axios';
-import type { StoryWithTranscription } from '@/types/types';
+import type { StoryWithInsights} from '@/types/types';
 
 export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
@@ -23,12 +23,12 @@ export const load = async (event) => {
 
     const { data: storyInfo, error: storyError } = await event.locals.supabase
 			.from('story')
-			.select('recording_link, transcription')
+			.select('recording_link, insights_gpt, transcription')
 			.eq('id', id)
 			.single();
 
     if (storyError) {
-      const errorMessage = `Error fetching video link and transcription, please try again later.`;
+      const errorMessage = `Error fetching insights and transcription, please try again later.`;
       setFlash({ type: 'error', message: errorMessage }, event.cookies);
       return error(500, errorMessage);
     }
@@ -49,13 +49,13 @@ export const load = async (event) => {
 		return storyInfo;
   }
 	
-	let story: StoryWithTranscription | null = null;
+	let story: StoryWithInsights | null = null;
 	const storyData = await getStoryInfo(event.params.id);
 	if (storyData) story = storyData;
 
   return {
-		updateTranscriptionForm: await superValidate(story, zod(updateStoryTranscriptionSchema), {
-			id: 'update-story-transcription',
+		updateInsightsForm: await superValidate(story, zod(updateStoryInsightsSchema), {
+			id: 'update-story-insights',
 		}),
 	};
 };
@@ -63,17 +63,29 @@ export const load = async (event) => {
 export const actions = {
 	updateStory: async (event) => {
 		try {
-			await handleFormAction(event, updateStoryTranscriptionSchema, 'update-story-transcription', async (event, userId, form) => {
+			await handleFormAction(event, updateStoryInsightsSchema, 'update-story-insights', async (event, userId, form) => {
 
-				const { error: supabaseError } = await event.locals.supabase
-						.from('story')
-						.update({ transcription: form.data.transcription })
-						.eq('id', event.params.id);
-
-				if (supabaseError) {
-					setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
-					return fail(500, { message: supabaseError.message, form });
-				}
+        if (form.data.transcription) {
+          const { error: supabaseError } = await event.locals.supabase
+              .from('story')
+              .update({ transcription: form.data.transcription, insights_gpt: form.data.insights_gpt })
+              .eq('id', event.params.id);
+  
+          if (supabaseError) {
+            setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
+            return fail(500, { message: supabaseError.message, form });
+          }
+        } else {
+          const { error: supabaseError } = await event.locals.supabase
+              .from('story')
+              .update({ insights_gpt: form.data.insights_gpt })
+              .eq('id', event.params.id);
+  
+          if (supabaseError) {
+            setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
+            return fail(500, { message: supabaseError.message, form });
+          }
+        }
 
 				throw redirect(303, `/story/${event.params.id}`);
 

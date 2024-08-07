@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { applyAction, deserialize, enhance } from '$app/forms';
+    import { applyAction, deserialize, enhance } from '$app/forms';
   import { Button } from "$lib/components/ui/button";
   import * as Form from '$lib/components/ui/form';
   import * as Carousel from "$lib/components/ui/carousel/index.js";
-  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { createStorySchema, type CreateStorySchema } from '$lib/schemas/story';
   import { PUBLIC_CLOUDINARY_CLOUD_NAME  } from '$env/static/public'
   
@@ -11,7 +10,6 @@
   import { zodClient, type Infer } from 'sveltekit-superforms/adapters';
 
   import { Cloudinary } from "@cloudinary/url-gen";
-  import { format } from '@cloudinary/url-gen/actions/delivery';
   
   import Input from "$lib/components/ui/input/input.svelte";
 
@@ -24,13 +22,6 @@
     "Diz-nos como te sentiste quando o Balcão te ajudou, qual foi o impacto na tua vida?",
     "Como resolverias isso se o Balcão não existisse? Seria mais fácil ou mais difícil?"
   ]
-
-  // Configure Cloudinary with your credentials
-  const cld = new Cloudinary({
-  cloud: {
-    cloudName: PUBLIC_CLOUDINARY_CLOUD_NAME
-  }
-});
   
   let altImg = 'Taking notes'
   
@@ -47,6 +38,8 @@
     const { form: formData, submitting, errors } = form;
 
     $formData.role = "community";
+
+
     let recordingState = 'idle'; // states: 'idle', 'recorded'
     let firstImageTaken = false;
     let secondImageTaken = false;
@@ -154,15 +147,6 @@
     document.getElementById(id).click();
   }
 
-  function deleteImage(index) {
-    imageFiles.splice(index, 1);
-    if (index === 0) {
-      firstImageTaken = false;
-    } else {
-      secondImageTaken = false;
-    }
-  }
-
 </script>
 
 <style>
@@ -178,7 +162,7 @@
           <Form.Control let:attrs>
             <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Qual é o nome da pessoa?</Form.Label>
             <span class="flex justify-center gap-2 inline-block pt-3">
-              <Input {...attrs} bind:value={$formData.storyteller} required/>
+              <Input class="w-auto" {...attrs} bind:value={$formData.storyteller} required/>
               <Form.FieldErrors />
               <span><Button class="p-2" type="button" on:click={() => page = 2}><ArrowRight /></Button></span>
             </span>
@@ -192,7 +176,7 @@
           <Form.Control let:attrs>
             <Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors">Em qual Balcão você está?</Form.Label>
             <span class="flex justify-center gap-2 inline-block pt-3">
-              <Input {...attrs} bind:value={$formData.tags} required/>
+              <Input class="w-auto" {...attrs} bind:value={$formData.tags} required/>
               <Form.FieldErrors />
               <span><Button class="p-2" type="button" on:click={() => page = 3}><ArrowRight /></Button></span>
             </span>
@@ -308,20 +292,6 @@
                 {/if}
               </div>
               {#if imageFiles.length > 1}
-              <!-- <div class="flex mt-4 gap-4">
-                {#each imageFiles as image, index}
-                  <div class="relative">
-                    <img src={image} alt={`Fotografia ${index + 1}`} class="w-16 h-16 object-cover border rounded" />
-                    <button
-                      type="button"
-                      class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 cursor-pointer"
-                      on:click={() => deleteImage(index)}
-                    >
-                      x
-                    </button>
-                  </div>
-                {/each}
-              </div> -->
               <Check class="h-4 w-4 text-green-600" />
               <p class="text-green-600">Fotografias guardadas</p>
               {/if}
@@ -329,12 +299,6 @@
           </Form.Control>
         </Form.Field>
 
-        <!-- <Form.Field {form} name="image" class="text-center">
-          <Form.Control let:attrs>
-            <input type="file" on:change={handleImageUpload} capture="environment" accept="image/*" />
-            <input type="file" on:change={handleImageUpload} capture="environment" accept="image/*" />
-          </Form.Control>
-        </Form.Field> -->
         <div class="mt-28 text-center">
           <Button type="submit" disabled={$submitting }>
             {#if $submitting}
