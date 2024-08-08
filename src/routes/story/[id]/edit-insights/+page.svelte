@@ -30,6 +30,10 @@
   $: transcription = ""
 	let textarea: HTMLTextAreaElement;
 
+  let technician_text = "Eu tenho uma transcrição de uma atendente e um cliente. A atendente faz as seguintes perguntas: Fale-nos de si (o seu nome, idade, o que faz no Balcão do Bairro), Diga-nos porque é que contribui com o seu tempo para o Balcão do Bairro (É uma ligação pessoal? Um sentido de justiça? Já foi atendido(a) e agora está em condições de retribuir?), Conte-nos uma história de uma pessoa que tenha ajudado e que nunca esquecerá, Diga-nos como se sentiu quando ajudou essa pessoa, Diga-nos como acha que trabalhar no Balcão do Bairro mudou a sua vida. A partir da transcrição, diga quais são os pontos fortes do balcão e quais pontos precisam ser melhorados. No máximo 3 de cada e escolha os mais importantes e relevantes."
+  let community_text = "Eu tenho uma transcrição de uma atendente e um cliente. A atendente faz as seguintes perguntas: Fale-nos de si (o seu nome, idade, bairro onde vive), Fale-nos de um problema que o Balcão o ajudou a resolver e das consequências desse problema, Diga-nos como o Balcão o ajudou a resolver o problema, especificando ao máximo os passos e todas as barreiras que enfrentou, Diz-nos como te sentiste quando o Balcão te ajudou, qual foi o impacto na tua vida?, Como resolverias isso se o Balcão não existisse? Seria mais fácil ou mais difícil? E a partir da transcrição, diga quais são os pontos fortes do balcão e quais pontos precisam ser melhorados. No máximo 3 de cada e escolha os mais importantes e relevantes."
+
+
   async function transcribe(audioFile) {
 		try {
 			const transcription = await openai.audio.transcriptions.create({
@@ -46,14 +50,14 @@
 		}
 	}
 
-	async function generate_insights(transcription:string) {
+	async function generate_insights(role, transcription:string) {
 		try {
 			const response = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           {
             "role": "system",
-            "content": "Eu tenho uma transcrição de uma atendente e um cliente. A atendente faz as seguintes perguntas: Fale-nos de si (o seu nome, idade, bairro onde vive), Fale-nos de um problema que o Balcão o ajudou a resolver e das consequências desse problema, Diga-nos como o Balcão o ajudou a resolver o problema, especificando ao máximo os passos e todas as barreiras que enfrentou, Diz-nos como te sentiste quando o Balcão te ajudou, qual foi o impacto na tua vida?, Como resolverias isso se o Balcão não existisse? Seria mais fácil ou mais difícil? A partir da transcrição, diga quais são os pontos fortes do balcão e quais pontos precisam ser melhorados. No máximo 3 de cada e escolha os mais importantes e relevantes."
+            "content": role === "technician" ? `${technician_text}` : `${community_text}`
           },
           {
             "role": "user",
@@ -120,15 +124,15 @@ onMount(async () => {
       try {
           const transcriptionResult = await transcribeRecording(formData.recording_link);
           transcription = transcriptionResult;
-          insights = await generate_insights(transcription);
+          insights = await generate_insights(formData.role, transcription);
       } catch (error) {
           console.error("Failed to transcribe recording:", error);
       }
   } else {
-    if (formData.insights) {
-      insights = formData.insights;
+    if (formData.insights_gpt) {
+      insights = formData.insights_gpt;
     } else {
-      let insightsResult = await generate_insights(formData.transcription);
+      let insightsResult = await generate_insights(formData.role, formData.transcription);
       insights = insightsResult.choices[0].message.content
     }
 	}

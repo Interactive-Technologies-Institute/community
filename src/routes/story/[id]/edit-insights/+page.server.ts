@@ -23,7 +23,7 @@ export const load = async (event) => {
 
     const { data: storyInfo, error: storyError } = await event.locals.supabase
 			.from('story')
-			.select('recording_link, insights_gpt, transcription')
+			.select('role, recording_link, insights_gpt, transcription')
 			.eq('id', id)
 			.single();
 

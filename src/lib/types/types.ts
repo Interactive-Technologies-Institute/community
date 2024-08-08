@@ -160,6 +160,8 @@ export type StoryWithTranscription = {
 };
 
 export type StoryWithInsights = {
-	insights: string;
+	role: CommunityRole;
+	recording_link: string;
+	insights_gpt: string;
 	transcription: string;
 };
