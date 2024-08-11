@@ -4,14 +4,18 @@
 	import { Button } from '@/components/ui/button';
 	import * as Card from "$lib/components/ui/card";
 	import { LayoutPanelTop, Wand, Eye, Pen, Tag, Trash } from 'lucide-svelte';
+	import Story from './_components/story.svelte';
+	import Pending from './_components/pending.svelte';
 //	import StoryDeleteDialog from './_components/story-delete-dialog.svelte';
 
 	export let data;
 
 	let openDeleteDialog = false;
 </script>
+<!-- TODO: 1. criar um componente que apareça a história publicada
+					2. criar um componente que apareça a história como estava pending antes: para os moderadores -->
 
-<PageHeader title={data.story.storyteller} subtitle={data.story.role === 'technician' ? 'Técnico' : 'Comunidade'} />
+<PageHeader title={data.story.storyteller} subtitle={data.story.role === 'technician' ? 'Técnico' : 'Membro da Comunidade'} />
 <div class="container mx-auto space-y-10 pb-10">
 	{#if data.moderation.status !== 'approved'}
 		<ModerationBanner moderation={data.moderation} />
@@ -25,36 +29,14 @@
             </Button>
         {/each}
     </div>
-    <div class="flex flex-col items-center gap-y-2 w-full">
-			<Card.Root class="mb-4 w-full">
-				<Card.Content class="flex justify-center pt-2">
-						<div class="my-auto w-full max-w-screen-md">
-								<h2 class="text-sm font-bold tracking-tight transition-colors">
-										<video src={data.story.recording_link} controls class="w-full md:h-80 lg:h-96 xl:h-[400px] object-contain" />
-								</h2>
-						</div>
-				</Card.Content>
-			</Card.Root>
-        <div class="w-full">
-            <h2 class="my-auto text-sm font-semibold tracking-tight transition-colors text-justify mb-2">
-                Imagens
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {#each data.story.image as image}
-                    <Card.Root class="mb-4 w-full">
-                        <Card.Content class="flex justify-between pt-2">
-                            <div class="my-auto w-full">
-                                <h2 class="text-sm font-bold tracking-tight transition-colors">
-                                    <img src={image} alt={`Imagem de ${data.story.storyteller}`} class="w-full" />
-                                </h2>
-                            </div>
-                        </Card.Content>
-                    </Card.Root>
-                {/each}
-            </div>
-        </div>
-    </div>
-</div>
+		{#if data.moderation.status == 'approved'}
+			<Story data={data.story} />
+		{/if}
+
+		{#if data.story.user_id === data.user?.id}
+			<Pending data={data.story} />
+		{/if}
+	</div>
 
 	{#if data.story.user_id === data.user?.id}
 	<div
@@ -74,18 +56,20 @@
 		{#if data.story.insights_gpt}
 				<Button href="/story/{data.story.id}/insights" class="w-full sm:w-auto">
 						<Eye class="mr-2 h-4 w-4" />
-						Abrir Insights
+						Abrir Análise
 				</Button>
 		{:else}
 				<Button href="/story/{data.story.id}/edit-insights" class="w-full sm:w-auto">
 						<Wand class="mr-2 h-4 w-4" />
-						Gerar Insights
+						Gerar Análise
 				</Button>
 		{/if}
+		{#if data.moderation.status === 'pending'}
 		<Button href="/story/{data.story.id}/preview" class="w-full sm:w-auto">
 				<LayoutPanelTop class="mr-2 h-4 w-4" />
 				Pré-visualizar história
 		</Button>
+		{/if}
 		<Button variant="destructive" on:click={() => (openDeleteDialog = true)} class="w-full sm:w-auto">
 				<Trash class="mr-2 h-4 w-4" />
 				Excluir
