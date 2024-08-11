@@ -626,6 +626,7 @@ export type Database = {
           tags: string[]
           transcription: string | null
           user_id: string
+          template: string | null
         }
         Insert: {
           id?: number
@@ -641,6 +642,7 @@ export type Database = {
           tags: string[]
           transcription?: string | null
           user_id: string
+          template: string | null
         }
         Update: {
           id?: number
@@ -656,6 +658,7 @@ export type Database = {
           tags?: string[]
           transcription?: string | null
           user_id?: string
+          template: string | null
         }
         Relationships: [
           {
@@ -1041,6 +1044,7 @@ export type Database = {
           tags: string[] | null
           transcription: string | null
           user_id: string | null
+          template: string | null
         }
         Relationships: [
           {

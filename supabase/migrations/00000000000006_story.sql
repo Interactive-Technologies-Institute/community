@@ -11,6 +11,7 @@ create table public.story (
 	recording_link text not null,
 	transcription text,
 	image text [] not null,
+	template text,
 	pub_story_text text [],
 	pub_quotes text [],
 	pub_selected_images text [],
@@ -62,8 +63,8 @@ select unnest(tags) as tag,
 from public.story
 group by tag;
 -- Storage Buckets
-insert into storage.buckets (id, name, public, allowed_mime_types)
-values ('story', 'Stories', true, '{"image/*"}');
+/* insert into storage.buckets (id, name, public, allowed_mime_types)
+values ('story', 'Stories', true, '{"image/*"}'); */
 -- RLS policies
 alter table public.story enable row level security;
 alter table public.story_moderation enable row level security;
@@ -116,5 +117,5 @@ update using (
 			select authorize('story.moderate')
 		)
 	);
-create policy "Allow users to upload images for their stories" on storage.objects for
-insert to authenticated with check (bucket_id = 'story');
+/* create policy "Allow users to upload images for their stories" on storage.objects for
+insert to authenticated with check (bucket_id = 'story'); */

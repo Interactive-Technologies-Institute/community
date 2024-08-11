@@ -152,6 +152,7 @@ export type Story = {
 	pub_quotes: string[];
 	pub_selected_images: string[];
 	insights_gpt: string;
+	template: string;
 };
 
 export type StoryWithTranscription = {
