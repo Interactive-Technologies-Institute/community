@@ -12,8 +12,6 @@
 
 	let openDeleteDialog = false;
 </script>
-<!-- TODO: 1. criar um componente que apareça a história publicada
-					2. criar um componente que apareça a história como estava pending antes: para os moderadores -->
 
 <PageHeader title={data.story.storyteller} subtitle={data.story.role === 'technician' ? 'Técnico' : 'Membro da Comunidade'} />
 <div class="container mx-auto space-y-10 pb-10">
