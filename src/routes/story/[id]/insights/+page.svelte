@@ -7,7 +7,7 @@
 
 </script>
 
-<PageHeader title={"Insights"} subtitle="" />
+<PageHeader title={"Análise"} subtitle="" />
 <div class="container mx-auto space-y-10 pb-10">
 	{#if data.story.insights_gpt !== ''}
   	<p>{data.story.insights_gpt}</p>
@@ -22,7 +22,7 @@
 		</Button>
 		<Button href="/story/{data.story.id}/edit-insights">
 			<Pen class="mr-2 h-4 w-4" />
-			Editar insights
+			Editar análise
 		</Button>
 	</div>
 </div>

@@ -178,12 +178,12 @@ onMount(async () => {
 
 </script>
 
-<PageHeader title={"Insights"} subtitle="" />
+<PageHeader title={"Análise"} subtitle="" />
 <form method="POST" action="?/updateStory" bind:this={updateStoryForm} on:submit|preventDefault={submitUpdateStoryForm}>
   <div class="container mx-auto space-y-10 pb-10">
     {#if insights === ''}
 			<PencilLine class="h-32 w-32 mx-auto" />
-      <h2 class="mb-2 text-2xl font-medium text-center">A gerar insights...</h2>
+      <h2 class="mb-2 text-2xl font-medium text-center">A gerar a análise...</h2>
       <p class="text-center">Por favor, não recarregue a página.</p>
     {:else}
       <Form.Field {form} name="insights_gpt">
