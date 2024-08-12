@@ -62,7 +62,7 @@ let technician_text = `
     - Diga-nos como se sentiu quando ajudou essa pessoa
     - Diga-nos como acha que trabalhar no Balcão do Bairro mudou a sua vida
     
-    A partir desta  transcrição, crie a história do atendente entrevistado de uma perspectiva externa. Seguindo estes passos de como contar uma boa história:    
+    A partir desta  transcrição, em linguagem Português de Portugal, crie a história do atendente entrevistado de uma perspectiva externa, sem inventar dados que não estejam na transcrição. Seguindo estes passos de como contar uma boa história:    
     - **Exposição** - Apresenta as personagens principais (pessoas reais!), o cenário da história (o tempo e o local relacionados com a sua organização) e o ambiente (a urgência é um bom ponto de partida)
     - **Conflito** - Este é o problema da sua história, o principal fator que impulsiona o enredo. O problema é frequentemente resolvido por algo que a sua organização sem fins lucrativos fez. A exposição e o conflito podem ocorrer quase simultaneamente, especialmente em textos mais curtos.
     - **Ação ascendente** - Todos os acontecimentos que conduzem ao clímax da sua história são considerados ação ascendente. Este é um bom local para mostrar como funciona a sua organização sem fins lucrativos e os passos que levam ao impacto que a sua equipa causa.
@@ -81,7 +81,7 @@ let technician_text = `
     - Diz-nos como te sentiste quando o Balcão te ajudou, qual foi o impacto na tua vida?
     - Como resolverias isso se o Balcão não existisse? Seria mais fácil ou mais difícil?
     
-    A partir desta  transcrição, escrevendo em português de Portugal, crie a história da cliente de uma perspectiva externa, sem inventar dados que não estejam na transcrição. Além disso, é importante adicionar falas ditas pela própria cliente para dar credibilidade ao que é dito. Seguindo estes passos de como contar uma boa história:    
+    A partir desta  transcrição, em linguagem português de Portugal, crie a história da cliente de uma perspectiva externa, sem inventar dados que não estejam na transcrição. Além disso, é importante adicionar falas ditas pela própria cliente para dar credibilidade ao que é dito. Seguindo estes passos de como contar uma boa história:    
     - **Exposição** - Apresenta as personagens principais (pessoas reais!), o cenário da história (o tempo e o local relacionados com a sua organização) e o ambiente (a urgência é um bom ponto de partida)
     - **Conflito** - Este é o problema da sua história, o principal fator que impulsiona o enredo. O problema é frequentemente resolvido por algo que a sua organização sem fins lucrativos fez. A exposição e o conflito podem ocorrer quase simultaneamente, especialmente em textos mais curtos.
     - **Ação ascendente** - Todos os acontecimentos que conduzem ao clímax da sua história são considerados ação ascendente. Este é um bom local para mostrar como funciona a sua organização sem fins lucrativos e os passos que levam ao impacto que a sua equipa causa.
@@ -155,7 +155,7 @@ async function organizeText(storyteller, text) {
   let textTitle = storyteller;
 
   // Separate the text into the main content and the quotes section
-  let [mainContent, quotesText] = text.split('**Quotes importantes:');
+  let [mainContent, quotesText] = text.split('**Quotes importantes:' || '**Quotes:');
 
   // Remove section headers and split into paragraphs, excluding the quotes section
   let textParagraphs = mainContent

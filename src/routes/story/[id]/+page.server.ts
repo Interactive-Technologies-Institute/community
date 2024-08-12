@@ -41,8 +41,13 @@ export const load = async (event) => {
 		return moderation;
 	}
 
+	function getUserPermission() {
+		return user ? user.role !== 'user' : false;
+	}
+
 	return {
 		story: await getStory(event.params.id),
 		moderation: await getStoryModeration(event.params.id),
+		permission: await getUserPermission(),
 	};
 };

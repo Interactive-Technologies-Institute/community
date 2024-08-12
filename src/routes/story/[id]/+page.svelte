@@ -31,12 +31,12 @@
 			<Story data={data.story} />
 		{/if}
 
-		{#if data.story.user_id === data.user?.id}
+		{#if data.permission}
 			<Pending data={data.story} />
 		{/if}
 	</div>
 
-	{#if data.story.user_id === data.user?.id}
+	{#if data.permission}
 	<div
 		class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 	>
@@ -62,16 +62,18 @@
 						Gerar Análise
 				</Button>
 		{/if}
-		{#if data.moderation.status === 'pending'}
-		<Button href="/story/{data.story.id}/preview" class="w-full sm:w-auto">
-				<LayoutPanelTop class="mr-2 h-4 w-4" />
-				Pré-visualizar história
-		</Button>
+		{#if data.story.user_id === data.user?.id && data.moderation.status === 'pending'}
+			<Button href="/story/{data.story.id}/preview" class="w-full sm:w-auto">
+					<LayoutPanelTop class="mr-2 h-4 w-4" />
+					Pré-visualizar história
+			</Button>
 		{/if}
-		<Button variant="destructive" on:click={() => (openDeleteDialog = true)} class="w-full sm:w-auto">
-				<Trash class="mr-2 h-4 w-4" />
-				Excluir
-		</Button>
+		{#if data.story.user_id === data.user?.id}
+			<Button variant="destructive" on:click={() => (openDeleteDialog = true)} class="w-full sm:w-auto">
+					<Trash class="mr-2 h-4 w-4" />
+					Excluir
+			</Button>
+		{/if}
 	</div>
 	{/if}
 </div>
