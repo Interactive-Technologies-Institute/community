@@ -32,28 +32,15 @@
     
     let updateStoryForm: HTMLFormElement;
     
-    $: title = ""
-    let subtitle = $formData.tags
     $: paragraphs = [];
     $: quotes = [];
     let currentTab = "t1"
 
-    /* let title = "Inês Martins, 35"
-	  let paragraphs = [
-  "Jéssica é uma jovem de 22 anos que vive num bairro na periferia de Lisboa. Recentemente, terminou os estudos secundários e estava a enfrentar pela primeira vez o desafio da procura de emprego. Sem experiência prévia e sem saber por onde começar, a sua situação tornou-se urgente. 'Sempre achei que não seria capaz de encontrar um trabalho logo de início, pensei que ia ser muito difícil', partilha ela, refletindo sobre as suas preocupações iniciais.",
-  "Nos primeiros dias, Jéssica sentiu-se perdida, sem entender as nuances de como procurar um emprego online. Foi aí que descobriu o Balcão do Bairro, uma organização sem fins lucrativos cujo objetivo é ajudar os residentes da comunidade a resolver problemas cotidianos, especialmente em áreas como a procura de emprego. 'Vim aqui todos os dias. Eles ajudaram-me a inscrever-me nos sites, a escrever o currículo, e a enviar as candidaturas', relembra Jéssica com um sorriso",
-  "Após várias semanas de esforço e persistência, o Balcão ajudou Jéssica a conseguir a sua primeira entrevista para um trabalho como babysitter. 'Lembram-me de me ligarem e dizerem 'Vimos a tua inscrição no nosso site. Queres trabalhar connosco como babysitter?'. Nem pensei duas vezes, disse logo que sim!' A felicidade sentida nesse momento foi indescritível e Jéssica sentiu-se finalmente valorizada.",
-  "O Balcão do Bairro não só ajudou Jéssica com aspetos técnicos da procura de emprego, mas também ofereceu apoio emocional. 'Aqui, disseram-me sempre 'Tu consegues, vai correr bem'. Essas palavras foram muito importantes para mim', ela recorda emocionada. Este encorajamento forneceu-lhe a confiança necessária para continuar a tentar, mesmo quando as coisas não pareciam promissoras.",
-  "Reflectindo sobre a sua jornada, Jéssica reconhece o impacto profundo que o Balcão do Bairro teve na sua vida. 'Se o Balcão não existisse, acho que teria sido muito mais frustrante. Eu ia estressar-me muito mais. Aqui, aprendi que sou capaz e que, com ajuda, posso conseguir tudo o que quiser.'A história de Jéssica é um testemunho do poder transformador do apoio comunitário e da importância de acreditar em si mesmo."
-  ]
-    let quotes = ["Sem o Balcão, seria mais difícil porque eu não tinha ideia de como procurar trabalho.", "Além de me ajudar a arranjar trabalho, o encorajamento também foi essencial."]
- */
-const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
-$: story = ""
-$: transcription = ""
-let textarea: HTMLTextAreaElement;
+  const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
+  $: story = ""
+  $: transcription = ""
 
-let technician_text = `
+  let technician_text = `
     Eu tenho uma transcrição de uma atendente e outro atendente que trabalha na mesma ONG. A atendente faz as seguintes perguntas:
     
     - Fale-nos de si (o seu nome, idade, o que faz no Balcão do Bairro)
@@ -62,18 +49,26 @@ let technician_text = `
     - Diga-nos como se sentiu quando ajudou essa pessoa
     - Diga-nos como acha que trabalhar no Balcão do Bairro mudou a sua vida
     
-    A partir desta  transcrição, em linguagem Português de Portugal, crie a história do atendente entrevistado de uma perspectiva externa, sem inventar dados que não estejam na transcrição. Seguindo estes passos de como contar uma boa história:    
-    - **Exposição** - Apresenta as personagens principais (pessoas reais!), o cenário da história (o tempo e o local relacionados com a sua organização) e o ambiente (a urgência é um bom ponto de partida)
-    - **Conflito** - Este é o problema da sua história, o principal fator que impulsiona o enredo. O problema é frequentemente resolvido por algo que a sua organização sem fins lucrativos fez. A exposição e o conflito podem ocorrer quase simultaneamente, especialmente em textos mais curtos.
-    - **Ação ascendente** - Todos os acontecimentos que conduzem ao clímax da sua história são considerados ação ascendente. Este é um bom local para mostrar como funciona a sua organização sem fins lucrativos e os passos que levam ao impacto que a sua equipa causa.
-    - **Clímax** - Este é o ponto de viragem da história, o pico da ação e o ponto em que o caminho para a resolução é concretizado. Este é o nível emocional mais elevado da sua história e a parte que realmente o liga ao seu público.
-    - **Resolução** - O fim. Não tem necessariamente de deixar o leitor com uma sensação de calor, mas deve pelo menos fazê-lo pensar e deve definitivamente deixar o seu público com uma ligação entre as suas emoções e a sua organização sem fins lucrativos.
-    - **Quotes importantes** - Eu quero que crie também 2 quotes que sejam muito importantes, que dão mais visibilidade ao que é feito no Balcão, a forma como os fazem sentir e como os ajudam.
-    O texto deve ter entre 4 a 5 parágrafos.
+    A partir desta  transcrição, em linguagem Português de Portugal, crie a história do atendente entrevistado de uma perspectiva externa, sem inventar dados que não estejam na transcrição e adicionando citações do atendente a ser entrevistado para dar mais visibilidade. Seguindo estes passos de como contar uma boa história:    
+    - Exposição - Apresenta as personagens principais (pessoas reais!), o cenário da história (o tempo e o local relacionados com a sua organização) e o ambiente (a urgência é um bom ponto de partida)
+    - Conflito - Este é o problema da sua história, o principal fator que impulsiona o enredo. O problema é frequentemente resolvido por algo que a sua organização sem fins lucrativos fez. A exposição e o conflito podem ocorrer quase simultaneamente, especialmente em textos mais curtos.
+    - Ação ascendente - Todos os acontecimentos que conduzem ao clímax da sua história são considerados ação ascendente. Este é um bom local para mostrar como funciona a sua organização sem fins lucrativos e os passos que levam ao impacto que a sua equipa causa.
+    - Clímax - Este é o ponto de viragem da história, o pico da ação e o ponto em que o caminho para a resolução é concretizado. Este é o nível emocional mais elevado da sua história e a parte que realmente o liga ao seu público.
+    - Resolução - O fim. Não tem necessariamente de deixar o leitor com uma sensação de calor, mas deve pelo menos fazê-lo pensar e deve definitivamente deixar o seu público com uma ligação entre as suas emoções e a sua organização sem fins lucrativos.
+    O texto deve ter 5 parágrafos.
+
+    Além disso, em uma secção chamada Quotes Importantes, crie 2 quotes que sejam muito importantes, que dão mais visibilidade ao que é feito no Balcão, a forma como os fazem sentir e como os ajudam.
+
+
+    O formato deverá ser:
+    # História:
+    <história criada>
+    # Quotes importantes:
+    <quotes importantes criados>
     `;
 
     let community_text = `
-    Eu tenho uma transcrição de uma atendente e um cliente. A atendente faz as seguintes perguntas:
+    Eu tenho uma transcrição de uma atendente de uma ONG e um cliente. A atendente faz as seguintes perguntas:
     
     - Fale-nos de si (o seu nome, idade, bairro onde vive)
     - Fale-nos de um problema que o Balcão o ajudou a resolver e das consequências desse problema
@@ -81,95 +76,76 @@ let technician_text = `
     - Diz-nos como te sentiste quando o Balcão te ajudou, qual foi o impacto na tua vida?
     - Como resolverias isso se o Balcão não existisse? Seria mais fácil ou mais difícil?
     
-    A partir desta  transcrição, em linguagem português de Portugal, crie a história da cliente de uma perspectiva externa, sem inventar dados que não estejam na transcrição. Além disso, é importante adicionar falas ditas pela própria cliente para dar credibilidade ao que é dito. Seguindo estes passos de como contar uma boa história:    
-    - **Exposição** - Apresenta as personagens principais (pessoas reais!), o cenário da história (o tempo e o local relacionados com a sua organização) e o ambiente (a urgência é um bom ponto de partida)
-    - **Conflito** - Este é o problema da sua história, o principal fator que impulsiona o enredo. O problema é frequentemente resolvido por algo que a sua organização sem fins lucrativos fez. A exposição e o conflito podem ocorrer quase simultaneamente, especialmente em textos mais curtos.
-    - **Ação ascendente** - Todos os acontecimentos que conduzem ao clímax da sua história são considerados ação ascendente. Este é um bom local para mostrar como funciona a sua organização sem fins lucrativos e os passos que levam ao impacto que a sua equipa causa.
-    - **Clímax** - Este é o ponto de viragem da história, o pico da ação e o ponto em que o caminho para a resolução é concretizado. Este é o nível emocional mais elevado da sua história e a parte que realmente o liga ao seu público.
-    - **Resolução** - O fim. Não tem necessariamente de deixar o leitor com uma sensação de calor, mas deve pelo menos fazê-lo pensar e deve definitivamente deixar o seu público com uma ligação entre as suas emoções e a sua organização sem fins lucrativos.
-    - **Quotes importantes** - Eu quero que crie também 2 quotes que sejam muito importantes, que dão mais visibilidade ao que é feito no Balcão, a forma como os fazem sentir e como os ajudam.
-    O texto deve ter entre 4 a 5 parágrafos.
+    A partir desta  transcrição, em linguagem Português de Portugal, crie a história do atendente entrevistado de uma perspectiva externa, sem inventar dados que não estejam na transcrição e adicionando citações do cliente para dar mais visibilidade. Seguindo estes passos de como contar uma boa história:    
+    - Exposição - Apresenta as personagens principais (pessoas reais!), o cenário da história (o tempo e o local relacionados com a sua organização) e o ambiente (a urgência é um bom ponto de partida)
+    - Conflito - Este é o problema da sua história, o principal fator que impulsiona o enredo. O problema é frequentemente resolvido por algo que a sua organização sem fins lucrativos fez. A exposição e o conflito podem ocorrer quase simultaneamente, especialmente em textos mais curtos.
+    - Ação ascendente - Todos os acontecimentos que conduzem ao clímax da sua história são considerados ação ascendente. Este é um bom local para mostrar como funciona a sua organização sem fins lucrativos e os passos que levam ao impacto que a sua equipa causa.
+    - Clímax - Este é o ponto de viragem da história, o pico da ação e o ponto em que o caminho para a resolução é concretizado. Este é o nível emocional mais elevado da sua história e a parte que realmente o liga ao seu público.
+    - Resolução - O fim. Não tem necessariamente de deixar o leitor com uma sensação de calor, mas deve pelo menos fazê-lo pensar e deve definitivamente deixar o seu público com uma ligação entre as suas emoções e a sua organização sem fins lucrativos.
+    O texto deve ter 5 parágrafos.
+
+    Além disso, em uma secção chamada Quotes Importantes, crie 2 quotes que sejam muito importantes, que dão mais visibilidade ao que é feito no Balcão, a forma como os fazem sentir e como os ajudam.
+    
+    O formato deverá ser:
+    # História:
+    <história criada>
+    # Quotes importantes:
+    <quotes importantes criados>
     `;
 
-  /* let text = `Jéssica é uma jovem de 22 anos que vive num bairro na periferia de Lisboa. Recentemente, terminou os estudos secundários e estava a enfrentar pela primeira vez o desafio da procura de emprego. Sem experiência prévia e sem saber por onde começar, a sua situação tornou-se urgente. "Sempre achei que não seria capaz de encontrar um trabalho logo de início, pensei que ia ser muito difícil", partilha ela, refletindo sobre as suas preocupações iniciais.
 
-Nos primeiros dias, Jéssica sentiu-se perdida, sem entender as nuances de como procurar um emprego online. Foi aí que descobriu o Balcão do Bairro, uma organização sem fins lucrativos cujo objetivo é ajudar os residentes da comunidade a resolver problemas cotidianos, especialmente em áreas como a procura de emprego. "Vim aqui todos os dias. Eles ajudaram-me a inscrever-me nos sites, a escrever o currículo, e a enviar as candidaturas", relembra Jéssica com um sorriso.
-
-Após várias semanas de esforço e persistência, o Balcão ajudou Jéssica a conseguir a sua primeira entrevista para um trabalho como babysitter. "Lembram-me de me ligarem e dizerem 'Vimos a tua inscrição no nosso site. Queres trabalhar connosco como babysitter?'. Nem pensei duas vezes, disse logo que sim!" A felicidade sentida nesse momento foi indescritível e Jéssica sentiu-se finalmente valorizada.
-
-O Balcão do Bairro não só ajudou Jéssica com aspetos técnicos da procura de emprego, mas também ofereceu apoio emocional. "Aqui, disseram-me sempre 'Tu consegues, vai correr bem'. Essas palavras foram muito importantes para mim", ela recorda emocionada. Este encorajamento forneceu-lhe a confiança necessária para continuar a tentar, mesmo quando as coisas não pareciam promissoras.
-
-Reflectindo sobre a sua jornada, Jéssica reconhece o impacto profundo que o Balcão do Bairro teve na sua vida. "Se o Balcão não existisse, acho que teria sido muito mais frustrante. Eu ia estressar-me muito mais. Aqui, aprendi que sou capaz e que, com ajuda, posso conseguir tudo o que quiser." A história de Jéssica é um testemunho do poder transformador do apoio comunitário e da importância de acreditar em si mesmo.
-
-### Quotes Importantes:
-
-- "Sem o Balcão, seria mais difícil porque eu não tinha ideia de como procurar trabalho."
-- "Além de me ajudar a arranjar trabalho, o encorajamento também foi essencial."
-- "Aqui, aprendi que sou capaz e que, com ajuda, posso conseguir tudo o que quiser."` */
-
-  let apiLeft: CarouselAPI;
-  let apiRight: CarouselAPI;
+  let apiImage: CarouselAPI;
   let apiQuote: CarouselAPI;
-  let currentLeft = 0;
-  let currentRight = 0;
+  let currentFirstImage = 0;
   let currentQuote = 0;
-  let selectedImageLeft = '';
-  let selectedImageRight = '';
+  let selectedImage = '';
   let selectedQuote = '';
 
-  let imageOptionsLeft = [
+  let imageOptions = [
     { src: $formData.image[0], alt: 'First Image' },
     { src: $formData.image[1], alt: 'Second Image' }
   ];
 
-  let imageOptionsRight = [
-    { src: $formData.image[0], alt: 'First Image' },
-    { src: $formData.image[1], alt: 'Second Image' }
-  ];
-
-  $: if (apiLeft) {;
-    selectedImageLeft = imageOptionsLeft[currentLeft].src;
-    apiLeft.on("select", () => {
-      currentLeft = currentLeft === 0 ? 1 : 0;
-      selectedImageLeft = imageOptionsLeft[currentLeft].src;
-    });
-  }
-
-  $: if (apiRight) {
-    selectedImageRight = imageOptionsRight[currentRight].src;
-    apiRight.on("select", () => {
-      currentRight = currentRight === 0 ? 1 : 0;
-      selectedImageRight = imageOptionsRight[currentRight].src;
+  $: if (apiImage) {;
+    selectedImage= imageOptions[currentFirstImage].src;
+    apiImage.on("select", () => {
+      currentFirstImage = currentFirstImage === 0 ? 1 : 0;
+      selectedImage = imageOptions[currentFirstImage].src;
     });
   }
   
   $: if (apiQuote) {
     selectedQuote = quotes[currentQuote];
     apiQuote.on("select", () => {
-      currentQuote = apiQuote.selectedScrollSnap()
+      currentQuote = currentQuote === 0 ? 1 : 0;
+      console.log(currentQuote)
       selectedQuote = quotes[currentQuote];
     });
   }
 
-async function organizeText(storyteller, text) {
-  let textTitle = storyteller;
+async function organizeText(text) {
+  let paragraphsText = [];
+  let quotesText = [];
 
-  // Separate the text into the main content and the quotes section
-  let [mainContent, quotesText] = text.split('**Quotes importantes:' || '**Quotes:');
+  // Separate the story from the quotes
+  let parts = text.split("# Quotes importantes:");
 
-  // Remove section headers and split into paragraphs, excluding the quotes section
-  let textParagraphs = mainContent
-    .replace(/(?:Exposição:|Conflito:|Ação ascendente:|Clímax:|Resolução:)/g, '')
-    .split('\n')
-    .map(paragraph => paragraph.trim())
-    .filter(paragraph => paragraph !== '');
+  // Split the story into paragraphs and trim any extra whitespace
+  if (parts[0]) {
+    paragraphsText = parts[0]
+      .replace("# História:", "")
+      .trim()
+      .split("\n\n");
+  }
 
-  // Extract quotes using regex from the quotes section
-  let textQuotes = quotesText
-    ? Array.from(quotesText.matchAll(/"([^"]+)"/g), match => match[1])
-    : [];
-
-  return [textTitle, textParagraphs, textQuotes]
+  // Extract quotes from the second part, if it exists
+  if (parts[1]) {
+    quotesText = parts[1]
+      .trim()
+      .split("\n")
+      .map(line => line.replace(/^\d+\.\s*/, "").replace(/^"|"$/g, "").trim());
+  }
+  return [paragraphsText, quotesText]
 }
 
 async function transcribe(audioFile) {
@@ -191,7 +167,7 @@ async function transcribe(audioFile) {
 async function generate_story(role, transcription:string) {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o",
       messages: [
         {
           "role": "system",
@@ -206,6 +182,8 @@ async function generate_story(role, transcription:string) {
       max_tokens: 1600,
       top_p: 1,
     });
+
+    console.log(response)
 
     return response;
 
@@ -269,16 +247,11 @@ onMount(async () => {
       }
   } else {
     if (formData.pub_story_text) {
-      console.log("aqui")
-      title = formData.storyteller;
       paragraphs = formData.pub_story_text;
       quotes = formData.pub_quotes;
     } else {
       let storyResult = await generate_story(formData.role, formData.transcription);
-      console.log(storyResult)
-      console.log(formData.storyteller)
-      let [titleResult, paragraphsResult, quotesResult] = await organizeText(formData.storyteller, storyResult.choices[0].message.content);
-      title = titleResult;
+      let [paragraphsResult, quotesResult] = await organizeText(storyResult.choices[0].message.content);
       paragraphs = paragraphsResult;
       quotes = quotesResult;
     }
@@ -301,12 +274,15 @@ onMount(async () => {
     if (event.submitter) {
       newFormData.append(event.submitter.name, event.submitter.value);
     }
+
+    console.log("current quote", currentQuote)
+    console.log("quotes", quotes)
     
     paragraphs.forEach(p => newFormData.append('pub_story_text', p));
     newFormData.append('pub_quotes', quotes[currentQuote])
     newFormData.append('pub_quotes', currentQuote == 0 ? quotes[1] : quotes[0])
-    newFormData.append('pub_selected_images', selectedImageLeft);
-    newFormData.append('pub_selected_images', selectedImageRight);
+    newFormData.append('pub_selected_images', selectedImage);
+    newFormData.append('pub_selected_images', currentFirstImage == 0 ? imageOptions[1].src : imageOptions[0].src);
     newFormData.append('id', $formData.id);
     newFormData.append('template', currentTab);
 
@@ -349,15 +325,15 @@ onMount(async () => {
           </Card.Description>
         </Card.Header>
         <Card.Content class="space-y-2">
-          <div class="w-full lg:float-left md:float-left  sm:max-w-sm md:max-w-md lg:max-w-xs lg:mr-4 mb-4 lg:mb-0 flex-shrink-0">
-            <Carousel.Root bind:api={apiLeft}>
+          <div class="w-auto auto lg:float-left md:float-left  sm:max-w-sm md:max-w-md lg:max-w-xs lg:mr-4 mb-4 lg:mb-0 flex-shrink-0">
+            <Carousel.Root bind:api={apiImage}>
               <Carousel.Content>
-                {#each imageOptionsLeft as image, i (i)}
+                {#each imageOptions as image, i (i)}
                   <Carousel.Item>
                     <div class="p-1">
                       <Card.Root>
                         <Card.Content class="flex aspect-square items-center justify-center p-6">
-                          <img src={image.src} alt={image.alt} class="w-full h-auto object-cover rounded-lg" />
+                          <img src={image.src} alt={image.alt} class="w-60 h-70 object-cover rounded-lg" />
                         </Card.Content>
                       </Card.Root>
                     </div>
@@ -365,15 +341,6 @@ onMount(async () => {
                 {/each}
               </Carousel.Content>
             </Carousel.Root>
-          </div>
-          <div class="mb-10">
-            <h1 class="font-semibold text-3xl mb-2">
-              <InPlaceEdit bind:value={title} on:submit={submit('title')}/>	
-            </h1>
-  
-            <h2 class="font-semibold text-xl">
-              <InPlaceEdit bind:value={subtitle} on:submit={submit('subtitle')}/>	
-            </h2>
           </div>
         
           {#each paragraphs as p}
@@ -395,9 +362,9 @@ onMount(async () => {
         </Card.Header>
         <Card.Content class="space-y-2">
           <div class="w-full lg:float-left md:float-left  sm:max-w-sm md:max-w-md lg:max-w-xs lg:mr-4 mb-4 lg:mb-0 flex-shrink-0">
-            <Carousel.Root bind:api={apiLeft}>
+            <Carousel.Root bind:api={apiImage}>
               <Carousel.Content>
-                {#each imageOptionsLeft as image, i (i)}
+                {#each imageOptions as image, i (i)}
                   <Carousel.Item>
                     <div class="p-1">
                       <Card.Root>
@@ -412,37 +379,29 @@ onMount(async () => {
             </Carousel.Root>
           </div>
 
-          <h1 class="font-semibold text-2xl text-center">
-            <InPlaceEdit bind:value={title} on:submit={submit('title')}/>	
-          </h1>
-
-          <h2 class="font-semibold text-xl text-center">
-            <InPlaceEdit bind:value={subtitle} on:submit={submit('subtitle')}/>	
-          </h2>
-
-        {#each paragraphs as element, i (element)}
-          <p class="text-justify">
-            <InPlaceEdit bind:value={element} on:submit={submit('text')}/>	
-          </p>
-          {#if i === (paragraphs.length - 4)}
-            <Carousel.Root class="w-full lg:float-right md:float-right  sm:max-w-sm md:max-w-md lg:max-w-xs lg:mr-4 mb-4 lg:mb-0 flex-shrink-0" bind:api={apiRight}>
+          <div class="w-2/3 flex justify-right mt-6">
+            <Carousel.Root bind:api={apiQuote}>
               <Carousel.Content>
-                {#each imageOptionsRight as image, i (i)}
-                  <Carousel.Item>
-                    <div class="p-1">
-                      <Card.Root>
-                        <Card.Content class="flex aspect-square items-center justify-center p-6">
-                          <img src={image.src} alt={image.alt} class="w-60 h-70 object-cover rounded-lg" />
-                      </Card.Content>
-                    </Card.Root>
-                  </div>
+              {#each quotes as quote, i (i)}
+                <Carousel.Item>
+                  <blockquote class="p-2 border-s-4 border-gray-300 bg-gray-50 dark:border-gray-500 dark:bg-gray-800 text-xl italic font-medium leading-relaxed text-gray-900 dark:text-white">
+                    <InPlaceEdit bind:value={quote} on:submit={submit('text')}/>	
+                  </blockquote>
                 </Carousel.Item>
               {/each}
             </Carousel.Content>
-          </Carousel.Root>
-          {/if}
-        {/each}
+            </Carousel.Root>
+          </div>
+
+          <div class="pt-4">
+            {#each paragraphs as element, i (element)}
+              <p class="text-justify pt-2">
+                <InPlaceEdit bind:value={element} on:submit={submit('text')}/>	
+              </p>
+            {/each}
+          </div>
         </Card.Content>
+        
       </Card.Root>
     </Tabs.Content>
     <Tabs.Content value="t3">
@@ -456,9 +415,9 @@ onMount(async () => {
         </Card.Header>
         <Card.Content class="space-y-2">
           <div class="w-full lg:float-left md:float-left  sm:max-w-sm md:max-w-md lg:max-w-xs lg:mr-4 mb-4 lg:mb-0 flex-shrink-0">
-            <Carousel.Root bind:api={apiLeft}>
+            <Carousel.Root bind:api={apiImage}>
               <Carousel.Content>
-                {#each imageOptionsLeft as image, i (i)}
+                {#each imageOptions as image, i (i)}
                   <Carousel.Item>
                     <div class="p-1">
                       <Card.Root>
@@ -473,20 +432,12 @@ onMount(async () => {
             </Carousel.Root>
           </div>
 
-          <h1 class="font-semibold text-2xl text-center">
-            <InPlaceEdit bind:value={title} on:submit={submit('title')}/>	
-          </h1>
-
-          <h2 class="font-semibold text-xl text-center">
-            <InPlaceEdit bind:value={subtitle} on:submit={submit('subtitle')}/>	
-          </h2>
-
         {#each paragraphs as element, i (element)}
           <p class="text-justify">
             <InPlaceEdit bind:value={element} on:submit={submit('text')}/>	
           </p>
           {#if i === (paragraphs.length - 3)}
-            <div class="w-full lg:w-1/2 mt-6">
+            <div class="w-full lg:w-full mt-6">
               <Carousel.Root bind:api={apiQuote}>
                 <Carousel.Content>
                   {#each quotes as quote, i (i)}
@@ -499,23 +450,6 @@ onMount(async () => {
                 </Carousel.Content>
               </Carousel.Root>
             </div>
-          {/if}
-          {#if i === (paragraphs.length - 4)}
-          <Carousel.Root class="w-full lg:float-right md:float-right  sm:max-w-sm md:max-w-md lg:max-w-xs lg:mr-4 mb-4 lg:mb-0 flex-shrink-0" bind:api={apiRight}>
-            <Carousel.Content>
-              {#each imageOptionsRight as image, i (i)}
-                <Carousel.Item>
-                  <div class="p-1">
-                    <Card.Root>
-                      <Card.Content class="flex aspect-square items-center justify-center p-6">
-                        <img src={image.src} alt={image.alt} class="w-60 h-70 object-cover rounded-lg" />
-                    </Card.Content>
-                  </Card.Root>
-                </div>
-              </Carousel.Item>
-            {/each}
-          </Carousel.Content>
-        </Carousel.Root>
           {/if}
         {/each}
         </Card.Content>
