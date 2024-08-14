@@ -86,11 +86,6 @@ export const actions = {
 				}
 			}
 
-			console.log(storyTexts)
-			console.log(storyQuotes)
-			console.log(storyImages)
-			console.log(template)
-
 			if (action === 'save') {
 				console.log("Saving story...");
 				const { error: supabaseError } = await locals.supabase
@@ -99,7 +94,7 @@ export const actions = {
 						.eq('id', id);
 
 				if (supabaseError) {
-					console.log(supabaseError.message)
+					setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
 					return fail(500, { message: supabaseError.message });
 				}
 
@@ -120,6 +115,7 @@ export const actions = {
 
 			if (supabaseStoryError) {
 				console.log(supabaseStoryError.message)
+
 				return fail(500, { message: supabaseStoryError.message });
 			}
 
@@ -133,7 +129,6 @@ export const actions = {
 			return { success: true };
 			}
 
-			// Fallback or error
 			return { success: false, error: 'Unknown action' };
 
 		} catch (error) {

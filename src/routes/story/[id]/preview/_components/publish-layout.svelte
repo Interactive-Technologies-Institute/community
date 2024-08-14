@@ -17,6 +17,7 @@
 	import { zodClient } from "sveltekit-superforms/adapters";
   import OpenAI from "openai";
 	import { applyAction, deserialize } from '$app/forms';
+  import { Loader2 } from 'lucide-svelte';
 
   
 	export let data: SuperValidated<Infer<CreateStorySchema>>;
@@ -28,7 +29,7 @@
       resetForm: false,
     });
     
-    const { form: formData, enhance, submitting } = form;
+    const { form: formData, enhance } = form;
     
     let updateStoryForm: HTMLFormElement;
     
@@ -92,8 +93,9 @@
     # Quotes importantes:
     <quotes importantes criados>
     `;
-
-
+  
+  $: submittingSave = false;
+  $: submittingPublish = false;
   let apiImage: CarouselAPI;
   let apiQuote: CarouselAPI;
   let currentFirstImage = 0;
@@ -267,6 +269,12 @@ onMount(async () => {
 	}
 
   async function submitUpdateStoryForm(event) {
+    if (event.submitter.value === "save") {
+      submittingSave = true;
+    } else {
+      submittingPublish = true;
+    }
+
     event.preventDefault();
 
     const newFormData = new FormData(event.currentTarget);
@@ -295,6 +303,13 @@ onMount(async () => {
     });
 
 		const result =  deserialize(await response.text());
+    if (result.type === "success") {
+      if (event.submitter.value === "save") {
+        submittingSave = false;
+      } else {
+        submittingPublish = false;
+      }
+    }
 
 		applyAction(result);
 	}
@@ -458,10 +473,16 @@ onMount(async () => {
   </Tabs.Root>
   {/if}
   <div class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <Button variant="outline" type="submit" name="action" value="save" class="w-full sm:w-auto">
+    <Button variant="outline" type="submit" disabled={submittingSave} name="action" value="save" class="w-full sm:w-auto">
+      {#if submittingSave}
+				<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+			{/if}
       Guardar
     </Button>
-    <Button type="submit" name="action" value="publish" class="w-full sm:w-auto">
+    <Button type="submit" name="action" disabled={submittingPublish} value="publish" class="w-full sm:w-auto">
+      {#if submittingPublish}
+				<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+			{/if}
       Publicar
     </Button>
   </div>

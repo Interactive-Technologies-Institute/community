@@ -10,6 +10,7 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { applyAction, deserialize } from '$app/forms';
+  import { Loader2 } from 'lucide-svelte';
 
 	export let data: SuperValidated<Infer<UpdateStoryTranscriptionSchema>>;
 
@@ -20,13 +21,14 @@
 		resetForm: false,
 	});
     
-  const { form: formData, enhance, submitting } = form;
+  const { form: formData, enhance } = form;
 
 	let updateStoryForm: HTMLFormElement;
 
 	
 	const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
 	$: transcription = "";
+  $: submitting = false;
 	let textarea: HTMLTextAreaElement;
 
 
@@ -108,6 +110,7 @@ onMount(async () => {
 });
 
 	async function submitUpdateStoryForm(event) {
+    submitting = true;
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -127,6 +130,9 @@ onMount(async () => {
     });
 
 		const result =  deserialize(await response.text());
+    if(result.status === 200) {
+      submitting = false;
+    }
 
 		applyAction(result);
 	}
@@ -154,7 +160,10 @@ onMount(async () => {
       </Form.Field>
     {/if}
     <div class="sticky bottom-0 flex w-full flex-row items-center justify-center gap-x-10 border-t bg-background/95 py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Button variant="outline" type="submit">
+      <Button variant="outline" type="submit" disabled={transcription === '' || submitting}>
+        {#if submitting}
+          <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+        {/if}
         Guardar
       </Button>
     </div>

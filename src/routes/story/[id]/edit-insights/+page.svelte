@@ -10,6 +10,7 @@
 	import { afterUpdate, onMount } from 'svelte';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+  import { Loader2 } from 'lucide-svelte';
 
 	export let data: SuperValidated<Infer<UpdateStoryInsightsSchema>>;
 
@@ -20,7 +21,7 @@
 		resetForm: false,
 	});
     
-  const { form: formData, enhance, submitting } = form;
+  const { form: formData, enhance } = form;
 
 	let updateStoryForm: HTMLFormElement;
 
@@ -28,6 +29,7 @@
 	const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
   $: insights = ""
   $: transcription = ""
+  $: submitting = false;
 	let textarea: HTMLTextAreaElement;
 
   let technician_text = "Eu tenho uma transcrição de uma atendente e um cliente. A atendente faz as seguintes perguntas: Fale-nos de si (o seu nome, idade, o que faz no Balcão do Bairro), Diga-nos porque é que contribui com o seu tempo para o Balcão do Bairro (É uma ligação pessoal? Um sentido de justiça? Já foi atendido(a) e agora está em condições de retribuir?), Conte-nos uma história de uma pessoa que tenha ajudado e que nunca esquecerá, Diga-nos como se sentiu quando ajudou essa pessoa, Diga-nos como acha que trabalhar no Balcão do Bairro mudou a sua vida. A partir da transcrição, diga quais são os pontos fortes do balcão e quais pontos precisam ser melhorados. No máximo 3 de cada e escolha os mais importantes e relevantes."
@@ -145,6 +147,7 @@ onMount(async () => {
 });
 
 	async function submitUpdateStoryForm(event) {
+    submitting = true;
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -167,6 +170,9 @@ onMount(async () => {
     });
 
 		const result =  deserialize(await response.text());
+    if(result.status === 200) {
+      submitting = false;
+    }
 
 		applyAction(result);
 	}
@@ -194,7 +200,10 @@ onMount(async () => {
       </Form.Field>
     {/if}
     <div class="sticky bottom-0 flex w-full flex-row items-center justify-center gap-x-10 border-t bg-background/95 py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Button variant="outline" type="submit">
+      <Button variant="outline" type="submit" disabled={insights === '' || submitting}>
+        {#if submitting}
+          <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+        {/if}
         Guardar
       </Button>
     </div>

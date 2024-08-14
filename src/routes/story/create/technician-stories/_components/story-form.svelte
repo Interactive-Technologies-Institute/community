@@ -35,13 +35,14 @@
       dataType: 'json',
     });
     
-    const { form: formData, submitting, errors } = form;
+    const { form: formData, errors } = form;
 
     $formData.role = "technician";
     
     let recordingState = 'idle'; // states: 'idle', 'recorded'
-  let firstImageTaken = false;
-  let secondImageTaken = false;
+    let firstImageTaken = false;
+    let secondImageTaken = false;
+    $: submitting = false;
 
 	  let createStoryForm: HTMLFormElement;
 
@@ -75,6 +76,7 @@
     };
 
   async function submitCreateStoryForm(event) {
+    submitting = true;
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -139,6 +141,9 @@
     });
 
     const result =  deserialize(await response.text());
+    if (result.status === 200) {
+      submitting = false;
+    }
 
     applyAction(result);
   } 
@@ -299,8 +304,8 @@
         </Form.Field>
 
         <div class="mt-28 text-center">
-          <Button type="submit" disabled={$submitting }>
-            {#if $submitting}
+          <Button type="submit" disabled={submitting}>
+            {#if submitting}
               <Loader2 class="mr-2 h-4 w-4 animate-spin" />
             {/if}
             Guardar História
@@ -308,12 +313,14 @@
         </div>
       </div>
   </form>
-  <div
-    class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-  >
-    <Button variant="outline" on:click={() => (page > 1? page = page - 1 : page)} class="w-full sm:w-auto">
-      <ArrowLeft class="mr-2 h-4 w-4" />
-      Voltar
-    </Button>
-  </div>
+  {#if page !== 1}
+    <div
+      class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    >
+      <Button variant="outline" on:click={() => (page > 1 ? page = page - 1 : page)} class="w-full sm:w-auto">
+        <ArrowLeft class="mr-2 h-4 w-4" />
+        Voltar
+      </Button>
+    </div>
+  {/if}
 </div>

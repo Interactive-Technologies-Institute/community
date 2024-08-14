@@ -115,7 +115,6 @@ export async function handleFormAction<
 	const { requireAuth = true as RequireAuth } = options ?? {};
 	let userId: string | undefined = undefined;
 	let utils = event.request.formData
-	console.log("UTILSSS", utils)
 
 	const form = await superValidate(event.request, zod(schema), { id: formId });
 

@@ -35,7 +35,7 @@
       dataType: 'json',
     });
     
-    const { form: formData, submitting, errors } = form;
+    const { form: formData, errors } = form;
 
     $formData.role = "community";
 
@@ -48,6 +48,7 @@
 
     let videoFile;
     $: imageFiles = [];
+    $: submitting = false;
 
     function handleVideoUpload(event) {
       videoFile = event.target.files[0];
@@ -76,11 +77,13 @@
     };
 
   async function submitCreateStoryForm(event) {
+    submitting = true;
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
 
     async function uploadVideo(video, type) {
+      
       const tempFormData = new FormData();
       tempFormData.append('file', video);
       tempFormData.append('upload_preset', 'bb-comunidade'); // Ensure you have an unsigned upload preset
@@ -94,7 +97,6 @@
         });
 
         const data = await response.json();
-        console.log("data secure url", data.secure_url); // URL of the uploaded file
 
         return data.secure_url;
 
@@ -138,7 +140,9 @@
     });
 
   const result =  deserialize(await response.text());
-  console.log("Result:", result);
+  if (result.status === 200) {
+    submitting = false;
+  }
 
   applyAction(result);
   } 
@@ -218,6 +222,7 @@
                   id="videoFile"
                   on:change={handleVideoUpload}
                   class="hidden"
+                  required
                 />
                 <div class="flex items-center gap-2">
                   {#if recordingState === 'idle'}
@@ -300,8 +305,8 @@
         </Form.Field>
 
         <div class="mt-28 text-center">
-          <Button type="submit" disabled={$submitting }>
-            {#if $submitting}
+          <Button type="submit" disabled={submitting }>
+            {#if submitting}
               <Loader2 class="mr-2 h-4 w-4 animate-spin" />
             {/if}
             Guardar História
@@ -309,12 +314,14 @@
         </div>
       </div>
   </form>
-  <div
-    class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-  >
-    <Button variant="outline" on:click={() => (page > 1? page = page - 1 : page)} class="w-full sm:w-auto">
-      <ArrowLeft class="mr-2 h-4 w-4" />
-      Voltar
-    </Button>
-  </div>
+  {#if page !== 1}
+    <div
+      class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    >
+      <Button variant="outline" on:click={() => (page > 1 ? page = page - 1 : page)} class="w-full sm:w-auto">
+        <ArrowLeft class="mr-2 h-4 w-4" />
+        Voltar
+      </Button>
+    </div>
+  {/if}
 </div>
