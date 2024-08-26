@@ -221,6 +221,7 @@
               <input
                 type="file"
                 accept="audio/*"
+                capture="user"
                 id="audioFile"
                 on:change={handleMediaUpload}
                 class="hidden"
