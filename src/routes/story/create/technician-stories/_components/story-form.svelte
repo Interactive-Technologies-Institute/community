@@ -13,7 +13,7 @@
   
   import Input from "$lib/components/ui/input/input.svelte";
 
-  import { ArrowLeft, ArrowRight, Check, Loader2, Camera } from "lucide-svelte";
+  import { ArrowLeft, ArrowRight, Check, Loader2, Camera, Video, Mic } from "lucide-svelte";
 
   const questions = [
     "Fale-nos de si (o seu nome, idade, o que faz no Balcão do Bairro)",
@@ -40,19 +40,20 @@
     $formData.role = "technician";
     
     let recordingState = 'idle'; // states: 'idle', 'recorded'
+    let recordingType = ''; // 'video' or 'audio'
     let firstImageTaken = false;
     let secondImageTaken = false;
-    $: submitting = false;
 
 	  let createStoryForm: HTMLFormElement;
 
-    let videoFile;
+    let mediaFile;
     $: imageFiles = [];
+    $: submitting = false;
 
-    function handleVideoUpload(event) {
-      videoFile = event.target.files[0];
+    function handleMediaUpload(event) {
+      mediaFile = event.target.files[0];
       recordingState = 'recorded';
-      console.log("video", videoFile);
+      console.log("video", mediaFile);
     }
 
     function handleImageUpload(event) {
@@ -65,14 +66,16 @@
       }
     }
 
-    const startRecording = () => {
-      document.getElementById('videoFile').click();
+    const startRecording = (type) => {
+      recordingType = type;
+      document.getElementById(type === 'video' ? 'videoFile' : 'audioFile').click();
     };
 
     const deleteRecording = () => {
-      videoFile = null;
+      mediaFile = null;
       recordingState = 'idle';
-      document.getElementById('videoFile').value = null; // Clear the file input
+      recordingType = '';
+      document.getElementById(recordingType === 'video' ? 'videoFile' : 'audioFile').value = null;
     };
 
   async function submitCreateStoryForm(event) {
@@ -104,7 +107,7 @@
       }
     }
 
-    const videoUrl = await uploadVideo(videoFile, "video");
+    const videoUrl = await uploadVideo(mediaFile, "video");
 
     if (!videoUrl) {
       console.error('Failed to upload video');
@@ -197,6 +200,128 @@
       </div>
 
       <div class="page" class:show={page === 3}>
+
+        <Form.Field hidden {form} name="recording_link" class="text-center">
+          <Form.Control let:attrs>
+            <div class="flex flex-col items-center gap-2">
+              <input
+                type="file"
+                accept="video/*"
+                id="videoFile"
+                on:change={handleMediaUpload}
+                class="hidden"
+              />
+            </div>
+          </Form.Control>
+        </Form.Field>
+
+        <Form.Field hidden {form} name="recording_link" class="text-center">
+          <Form.Control let:attrs>
+            <div class="flex flex-col items-center gap-2">
+              <input
+                type="file"
+                accept="audio/*"
+                id="audioFile"
+                on:change={handleMediaUpload}
+                class="hidden"
+              />
+            </div>
+          </Form.Control>
+        </Form.Field>
+
+        <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
+          <Carousel.Root>
+            <Carousel.Content>
+              {#each questions as question}
+                <Carousel.Item class="w-full">
+                  <div class="text-center p-2">
+                    <span class="text-sm font-semibold">{question}</span>
+                  </div>
+                </Carousel.Item>
+              {/each}
+            </Carousel.Content>
+            <Carousel.Previous />
+            <Carousel.Next />
+          </Carousel.Root>
+        </div>
+        <div class="mt-4 text-center">
+          <div class="flex flex-col items-center gap-2">
+          <!-- <Form.Field {form} name="recording_link" class="text-center">
+            <Form.Control let:attrs>
+              <div class="flex flex-col items-center gap-2">
+                <input
+                  type="file"
+                  accept="video/*"
+                  id="videoFile"
+                  on:change={handleMediaUpload}
+                  class="hidden"
+                  required
+                />
+                <input
+                  type="file"
+                  accept="audio/*"
+                  id="audioFile"
+                  on:change={handleMediaUpload}
+                  class="hidden"
+                  required
+                /> -->
+                <div class="flex items-center gap-2">
+                  <!-- {#if recordingState === 'idle'}
+                    <Button
+                      type="button"
+                      class="p-2 bg-black text-white cursor-pointer text-sm"
+                      on:click={startRecording}
+                    >
+                      Iniciar gravação
+                    </Button>
+                  {:else if recordingState === 'recorded'}
+                    <Button
+                      type="button"
+                      class="p-2 bg-red-500 text-white cursor-pointer text-sm"
+                      on:click={deleteRecording}
+                    >
+                      Refazer gravação
+                    </Button>
+                  {/if} -->
+                  {#if recordingState === 'idle'}
+                    <Button
+                      type="button"
+                      class="p-2 bg-black text-white cursor-pointer text-sm"
+                      on:click={() => startRecording('video')}
+                      disabled={recordingState === 'recorded'}
+                    >
+                      <Video />
+                    </Button>
+                    <Button
+                      type="button"
+                      class="p-2 bg-black text-white cursor-pointer text-sm"
+                      on:click={() => startRecording('audio')}
+                      disabled={recordingState === 'recorded'}
+                    >
+                      <Mic />
+                    </Button>
+                  {:else}
+                    <Button
+                      type="button"
+                      class="p-2 bg-red-500 text-white cursor-pointer text-sm"
+                      on:click={deleteRecording}
+                    >
+                      Refazer gravação
+                    </Button>
+                  {/if}
+                  <Button class="p-2" on:click={() => page = 4} disabled={recordingState === 'recording' || recordingState === 'idle'}>
+                    <ArrowRight />
+                  </Button>
+                </div>
+              </div>
+                <!-- <Form.FieldErrors />
+              </div>
+            </Form.Control>
+          </Form.Field> -->
+        </div>
+      </div>
+
+      <!-- <div class="page" class:show={page === 3}>
         <div class="mx-auto mt-6 w-[280px] h-[150px] px-4">
           <Carousel.Root>
             <Carousel.Content>
@@ -250,7 +375,7 @@
             </Form.Control>
           </Form.Field>
         </div>
-      </div>
+      </div> -->
 
       <div class="page" class:show={page === 4}>
         <img class="mx-auto" src="/app_images/taking_notes.png" alt={altImg} width={280}/>

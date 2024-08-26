@@ -49,7 +49,7 @@
 	}
 
 	const getIdentifier = (url: string) => {
-		const regex = /\/([^/]+)\.mov$/;
+		const regex = /\/([^/]+)\.(mov|mp3|mp4|3gp|avi|mkv|flv|wmv|wav|ogg)$/i;
 		const match = url.match(regex);
 		return match ? match[1] : null;
 	};
@@ -74,7 +74,7 @@ onMount(async () => {
       const extension = getExtension(recordingLink);
       let videoUrl = recordingLink;
 
-      if (extension === "mov") {
+      if (extension !== "mp4") {
           const identifier = getIdentifier(recordingLink);
           videoUrl = `https://res.cloudinary.com/${PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/f_mp4/${identifier}.mp4`;
       }

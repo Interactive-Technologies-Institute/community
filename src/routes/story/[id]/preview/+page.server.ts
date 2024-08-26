@@ -32,7 +32,7 @@ export const load = async (event) => {
     }
 
 
-		if (getExtension(story.recording_link) === "mov") {
+		if (getExtension(story.recording_link) !== "mp4") {
 			const { error: supabaseError } = await event.locals.supabase
 					.from('story')
 					.update({recording_link: story.recording_link.replace('.mov', '.mp4') })
