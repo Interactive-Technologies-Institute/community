@@ -218,7 +218,7 @@
               <div class="flex flex-col items-center gap-2">
                 <input
                   type="file"
-                  accept="video/*"
+                  accept="video/*, audio/*"
                   id="videoFile"
                   on:change={handleVideoUpload}
                   class="hidden"
