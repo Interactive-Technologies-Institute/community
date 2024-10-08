@@ -17,6 +17,11 @@ create table public.story (
 	pub_selected_images text [],
 	insights_gpt text
 );
+alter table public.story
+add column fts tsvector generated always as (
+		to_tsvector('simple', storyteller || ' ')
+	) stored;
+create index story_fts on public.story using gin (fts);
 create trigger handle_updated_at before
 update on public.story for each row execute procedure moddatetime (updated_at);
 create table public.story_moderation(
@@ -100,6 +105,12 @@ create policy "Allow moderators delete all stories" on public.story for delete u
 	(
 		select authorize('story.moderate')
 	)
+);
+create policy "Allow users to delete their own stories" on public.story for delete using (
+	(
+		select authorize('story.delete')
+	)
+	and auth.uid() = user_id
 );
 create policy "Allow users to read approved stories moderation" on public.story_moderation for
 select using (
