@@ -5,9 +5,10 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import { deleteStorySchema, unpublishStorySchema } from '@/schemas/story';
 
 export const load = async (event) => {
-	const { user } = await event.locals.safeGetSession();
+	const { session, user, profile } = await event.parent();
 
 	async function getStory(id: string): Promise<Story> {
 		const { data: story, error: storyError } = await event.locals.supabase
@@ -49,5 +50,42 @@ export const load = async (event) => {
 		story: await getStory(event.params.id),
 		moderation: await getStoryModeration(event.params.id),
 		permission: await getUserPermission(),
+		deleteForm: await superValidate(zod(deleteStorySchema), {
+			id: 'delete-story',
+		}),
+		unpublishForm: await superValidate(zod(unpublishStorySchema), {
+			id: 'unpublish-story',
+		}),
 	};
 };
+
+export const actions = {
+	delete: async (event) =>
+		handleFormAction(event, deleteStorySchema, 'delete-story', async (event, userId, form) => {
+			const { error: supabaseError } = await event.locals.supabase
+				.from('story')
+				.delete()
+				.eq('id', form.data.id);
+
+			if (supabaseError) {
+				setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
+				return fail(500, { message: supabaseError.message, form });
+			}
+
+			return redirect(303, '/story');
+		}),
+	unpublish: async (event) =>
+		handleFormAction(event, unpublishStorySchema, 'unpublish-story', async (event, userId, form) => {
+			const { error: supabaseModerationError } = await event.locals.supabase
+			.from('story_moderation')
+			.update({ status: 'pending', comment: 'Pending moderation' })
+			.eq('id', form.data.id);
+
+			if (supabaseModerationError) {
+				setFlash({ type: 'error', message: supabaseModerationError.message }, event.cookies);
+				return fail(500, { message: supabaseModerationError.message, form });
+			}
+
+			return redirect(303, '/story');
+		}),
+}

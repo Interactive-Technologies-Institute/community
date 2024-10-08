@@ -1,29 +1,29 @@
 <script lang="ts">
 	import * as AlertDialog from '@/components/ui/alert-dialog';
-	import { deleteStorySchema, type DeleteStorySchema } from '@/schemas/story';
+	import { unpublishStorySchema, type UnpublishStorySchema } from '@/schemas/story';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
 	export let open = false;
 	export let storyId: number;
-	export let data: SuperValidated<Infer<DeleteStorySchema>>;
+	export let data: SuperValidated<Infer<UnpublishStorySchema>>;
 
 	const form = superForm(data, {
-		validators: zodClient(deleteStorySchema),
+		validators: zodClient(unpublishStorySchema),
 	});
 
 	const { enhance } = form;
 </script>
 
 <AlertDialog.Root bind:open>
-	<form method="POST" action="?/delete" use:enhance>
+	<form method="POST" action="?/unpublish" use:enhance>
 		<input type="hidden" name="id" value={storyId} />
 	</form>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
 			<AlertDialog.Title>Você tem certeza?</AlertDialog.Title>
 			<AlertDialog.Description>
-				Esta ação não poderá ser desfeita. Isto irá permanentemente excluir esta história e remover estes dados dos nossos servidores. 
+				Esta ação é reversível, mas fará com que a história não esteja disponível para o público.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>

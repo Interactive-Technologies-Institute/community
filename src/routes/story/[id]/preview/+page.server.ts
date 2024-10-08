@@ -16,10 +16,9 @@ export const load = async (event) => {
 	};
 
 	async function getStory(id: string): Promise<Story> {
-		console.log("eu entro aqui")
 
     const { data: story, error: storyError } = await event.locals.supabase
-			.from('story')
+			.from('story_view')
 			.select('*')
 			.eq('id', id)
 			.single();
@@ -49,6 +48,7 @@ export const load = async (event) => {
 
   return {
 		stories: await getStory(event.params.id),
+		userId: user.id,
 	};
 };
 export const actions = {

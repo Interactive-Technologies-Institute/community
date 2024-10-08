@@ -21,6 +21,7 @@
 
   
 	export let data: SuperValidated<Infer<CreateStorySchema>>;
+	export let user;
     
     const form = superForm(data, {
       validators: zodClient(createStorySchema),
@@ -35,6 +36,7 @@
     
     $: paragraphs = [];
     $: quotes = [];
+    let user_id;
     let currentTab = "t1"
 
   const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
@@ -216,6 +218,7 @@ const getBlobFromUrl = async (url:string) => {
 
 onMount(async () => {
   const formData = $formData;
+  user_id = formData.user_id;
 
   const transcribeRecording = async (recordingLink: string) => {
       const extension = getExtension(recordingLink);
@@ -473,18 +476,22 @@ onMount(async () => {
   </Tabs.Root>
   {/if}
   <div class="sticky bottom-0 flex w-full flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-x-10 border-t bg-background/95 py-4 sm:py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <Button variant="outline" type="submit" disabled={submittingSave} name="action" value="save" class="w-full sm:w-auto">
-      {#if submittingSave}
-				<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-			{/if}
-      Guardar
-    </Button>
-    <Button type="submit" name="action" disabled={submittingPublish} value="publish" class="w-full sm:w-auto">
-      {#if submittingPublish}
-				<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-			{/if}
-      Publicar
-    </Button>
+    {#if paragraphs.length !== 0}
+      <Button variant="outline" type="submit" disabled={submittingSave} name="action" value="save" class="w-full sm:w-auto">
+        {#if submittingSave}
+          <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+        {/if}
+        Guardar
+      </Button>
+      {#if user_id === user}
+        <Button type="submit" name="action" disabled={submittingPublish} value="publish" class="w-full sm:w-auto">
+          {#if submittingPublish}
+            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+          {/if}
+          Publicar
+        </Button>
+      {/if}
+    {/if}
   </div>
 </div>
 </form>

@@ -153,6 +153,7 @@ export type Story = {
 	pub_selected_images: string[];
 	insights_gpt: string;
 	template: string;
+	moderation_status: ModerationStatus;
 };
 
 export type StoryWithTranscription = {

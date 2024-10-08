@@ -16,3 +16,9 @@ export const deleteStorySchema = z.object({
 });
 
 export type DeleteStorySchema = typeof deleteStorySchema;
+
+export const unpublishStorySchema = z.object({
+	id: z.number(),
+});
+
+export type UnpublishStorySchema = typeof unpublishStorySchema;

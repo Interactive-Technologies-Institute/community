@@ -6,11 +6,13 @@
 	import { LayoutPanelTop, Wand, Eye, Pen, Tag, Trash } from 'lucide-svelte';
 	import Story from './_components/story.svelte';
 	import Pending from './_components/pending.svelte';
-//	import StoryDeleteDialog from './_components/story-delete-dialog.svelte';
+	import StoryDeleteDialog from './_components/story-delete-dialog.svelte';
+	import StoryUnpublishDialog from './_components/story-unpublish-dialog.svelte';
 
 	export let data;
 
 	let openDeleteDialog = false;
+	let openUnpublishDialog = false;
 </script>
 
 <PageHeader title={data.story.storyteller} subtitle={data.story.role === 'technician' ? 'Técnico' : 'Membro da Comunidade'} />
@@ -62,10 +64,16 @@
 						Gerar Análise
 				</Button>
 		{/if}
-		{#if data.story.user_id === data.user?.id && data.moderation.status === 'pending'}
+		{#if data.moderation.status === 'pending'}
 			<Button href="/story/{data.story.id}/preview" class="w-full sm:w-auto">
 					<LayoutPanelTop class="mr-2 h-4 w-4" />
 					Pré-visualizar história
+			</Button>
+		{/if}
+		{#if data.story.user_id === data.user?.id && data.moderation.status === 'approved'}
+			<Button variant="destructive" on:click={() => (openUnpublishDialog = true)} class="w-full sm:w-auto">
+					<Trash class="mr-2 h-4 w-4" />
+					Remover Publicação
 			</Button>
 		{/if}
 		{#if data.story.user_id === data.user?.id}
@@ -78,4 +86,5 @@
 	{/if}
 </div>
 
-<!-- <StoryDeleteDialog storyId={data.story.id} data={data.deleteForm} bind:open={openDeleteDialog} /> -->
+<StoryDeleteDialog storyId={data.story.id} data={data.deleteForm} bind:open={openDeleteDialog} />
+<StoryUnpublishDialog storyId={data.story.id} data={data.unpublishForm} bind:open={openUnpublishDialog} />
