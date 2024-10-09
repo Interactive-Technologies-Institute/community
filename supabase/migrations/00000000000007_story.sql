@@ -7,7 +7,7 @@ create table public.story (
 	storyteller text not null,
 	user_id uuid references public.profiles not null,
 	tags text [] not null,
-  role public.story_role not null,
+	role public.story_role not null,
 	recording_link text not null,
 	transcription text,
 	image text [] not null,
@@ -18,9 +18,7 @@ create table public.story (
 	insights_gpt text
 );
 alter table public.story
-add column fts tsvector generated always as (
-		to_tsvector('simple', storyteller || ' ')
-	) stored;
+add column fts tsvector generated always as (to_tsvector('simple', storyteller || ' ')) stored;
 create index story_fts on public.story using gin (fts);
 create trigger handle_updated_at before
 update on public.story for each row execute procedure moddatetime (updated_at);
@@ -68,8 +66,8 @@ select unnest(tags) as tag,
 from public.story
 group by tag;
 -- Storage Buckets
-/* insert into storage.buckets (id, name, public, allowed_mime_types)
-values ('story', 'Stories', true, '{"image/*"}'); */
+-- insert into storage.buckets (id, name, public, allowed_mime_types)
+-- values ('story', 'Stories', true, '{"image/*"}');
 -- RLS policies
 alter table public.story enable row level security;
 alter table public.story_moderation enable row level security;
@@ -128,5 +126,5 @@ update using (
 			select authorize('story.moderate')
 		)
 	);
-/* create policy "Allow users to upload images for their stories" on storage.objects for
-insert to authenticated with check (bucket_id = 'story'); */
+-- create policy "Allow users to upload images for their stories" on storage.objects for
+-- insert to authenticated with check (bucket_id = 'story'); */

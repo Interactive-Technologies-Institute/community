@@ -1,10 +1,8 @@
 <script lang="ts">
-  
-  import StoryForm from "./_components/story-form.svelte";
-	import PageHeader from "@/components/page-header.svelte";
+	import StoryForm from './_components/story-form.svelte';
+	import PageHeader from '@/components/page-header.svelte';
 
-  export let data;
-
+	export let data;
 </script>
 
 <svelte:head>
@@ -12,8 +10,7 @@
 	<meta name="description" content="Collect community stories" />
 </svelte:head>
 
-<PageHeader title={"História dos Técnicos"} subtitle="" />
-  <div class="container mx-auto space-y-10 pb-10">
-    <StoryForm data={data.createForm}/>
-  </div>
-
+<PageHeader title={'História dos Técnicos'} subtitle="" />
+<div class="container mx-auto space-y-10 pb-10">
+	<StoryForm data={data.createForm} />
+</div>

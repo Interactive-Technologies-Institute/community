@@ -1,11 +1,6 @@
-import { PUBLIC_OPENAI_API_KEY, PUBLIC_CLOUDINARY_API_KEY, PUBLIC_CLOUDINARY_API_SECRET, PUBLIC_CLOUDINARY_CLOUD_NAME } from '$env/static/public';
-import { updateStoryInsightsSchema } from '@/schemas/story-insights';
+import type { Story } from '@/types/types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
-import { handleFormAction } from '@/utils';
-import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
-import axios from 'axios';
 
 export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
@@ -16,26 +11,24 @@ export const load = async (event) => {
 	};
 
 	async function getStory(id: string): Promise<Story> {
-
-    const { data: story, error: storyError } = await event.locals.supabase
+		const { data: story, error: storyError } = await event.locals.supabase
 			.from('story_view')
 			.select('*')
 			.eq('id', id)
 			.single();
 
-    if (storyError) {
-			console.log(storyError)
-      const errorMessage = `Error fetching story, please try again later.`;
-      setFlash({ type: 'error', message: errorMessage }, event.cookies);
-      return error(500, errorMessage);
-    }
+		if (storyError) {
+			console.log(storyError);
+			const errorMessage = `Error fetching story, please try again later.`;
+			setFlash({ type: 'error', message: errorMessage }, event.cookies);
+			return error(500, errorMessage);
+		}
 
-
-		if (getExtension(story.recording_link) !== "mp4") {
+		if (getExtension(story.recording_link) !== 'mp4') {
 			const { error: supabaseError } = await event.locals.supabase
-					.from('story')
-					.update({recording_link: story.recording_link.replace('.mov', '.mp4') })
-					.eq('id', event.params.id);
+				.from('story')
+				.update({ recording_link: story.recording_link.replace('.mov', '.mp4') })
+				.eq('id', event.params.id);
 
 			if (supabaseError) {
 				setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
@@ -44,15 +37,15 @@ export const load = async (event) => {
 		}
 
 		return story;
-  }
+	}
 
-  return {
+	return {
 		stories: await getStory(event.params.id),
 		userId: user.id,
 	};
 };
 export const actions = {
-  updateStory: async ({ locals, request }) => {
+	updateStory: async ({ locals, request }) => {
 		try {
 			const formData = await request.formData();
 			let action;
@@ -66,32 +59,36 @@ export const actions = {
 			for (let [key, value] of formData.entries()) {
 				switch (key) {
 					case 'action':
-							action = value;
-							break;
+						action = value;
+						break;
 					case 'pub_story_text':
-							storyTexts.push(value);
-							break;
+						storyTexts.push(value);
+						break;
 					case 'pub_quotes':
-							storyQuotes.push(value);
-							break;
+						storyQuotes.push(value);
+						break;
 					case 'pub_selected_images':
-							storyImages.push(value);
-							break;
+						storyImages.push(value);
+						break;
 					case 'id':
-							id = value;
-							break;
+						id = value;
+						break;
 					case 'template':
-							template = value;
-							break;
+						template = value;
+						break;
 				}
 			}
 
 			if (action === 'save') {
-				console.log("Saving story...");
+				console.log('Saving story...');
 				const { error: supabaseError } = await locals.supabase
-						.from('story')
-						.update({ pub_story_text: storyTexts, pub_quotes: storyQuotes, pub_selected_images: storyImages })
-						.eq('id', id);
+					.from('story')
+					.update({
+						pub_story_text: storyTexts,
+						pub_quotes: storyQuotes,
+						pub_selected_images: storyImages,
+					})
+					.eq('id', id);
 
 				if (supabaseError) {
 					setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
@@ -100,42 +97,46 @@ export const actions = {
 
 				return { success: true };
 			}
-	
+
 			if (action === 'publish') {
-				console.log("Publishing story...");
+				console.log('Publishing story...');
 				const { error: supabaseStoryError } = await locals.supabase
-				.from('story')
-				.update({ pub_story_text: storyTexts, pub_quotes: storyQuotes, pub_selected_images: storyImages, template: template })
-				.eq('id', id);
+					.from('story')
+					.update({
+						pub_story_text: storyTexts,
+						pub_quotes: storyQuotes,
+						pub_selected_images: storyImages,
+						template: template,
+					})
+					.eq('id', id);
 
 				const { error: supabaseModerationError } = await locals.supabase
-				.from('story_moderation')
-				.update({ status: 'approved', comment: '' })
-				.eq('id', id);
+					.from('story_moderation')
+					.update({ status: 'approved', comment: '' })
+					.eq('id', id);
 
-			if (supabaseStoryError) {
-				console.log(supabaseStoryError.message)
+				if (supabaseStoryError) {
+					console.log(supabaseStoryError.message);
 
-				return fail(500, { message: supabaseStoryError.message });
-			}
+					return fail(500, { message: supabaseStoryError.message });
+				}
 
-			if (supabaseModerationError) {
-				console.log(supabaseModerationError.message)
-				return fail(500, { message: supabaseModerationError.message });
-			}
+				if (supabaseModerationError) {
+					console.log(supabaseModerationError.message);
+					return fail(500, { message: supabaseModerationError.message });
+				}
 
-			throw redirect(303, `/story/${id}`);
+				throw redirect(303, `/story/${id}`);
 
-			return { success: true };
+				return { success: true };
 			}
 
 			return { success: false, error: 'Unknown action' };
-
 		} catch (error) {
 			if (error.status === 303) {
 				return redirect(303, error.location);
 			}
 			return fail(500, { message: 'Internal Server Error' });
 		}
-  }
+	},
 };

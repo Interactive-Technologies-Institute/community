@@ -141,12 +141,12 @@ export type Story = {
 	id: number;
 	storyteller: string;
 	user_id: string;
-  inserted_at: string;
+	inserted_at: string;
 	updated_at: string;
 	image: string[];
 	tags: string[];
 	role: CommunityRole;
-  transcription: string;
+	transcription: string;
 	recording_link: string;
 	pub_story_text: string[];
 	pub_quotes: string[];

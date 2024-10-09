@@ -1,14 +1,14 @@
 //import { deleteStorychema } from '@/schemas/story';
-import type { Story, ModerationInfo } from '@/types/types';
+import { deleteStorySchema, unpublishStorySchema } from '@/schemas/story';
+import type { ModerationInfo, Story } from '@/types/types';
 import { handleFormAction } from '@/utils';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { deleteStorySchema, unpublishStorySchema } from '@/schemas/story';
 
 export const load = async (event) => {
-	const { session, user, profile } = await event.parent();
+	const { user } = await event.parent();
 
 	async function getStory(id: string): Promise<Story> {
 		const { data: story, error: storyError } = await event.locals.supabase
@@ -17,12 +17,12 @@ export const load = async (event) => {
 			.eq('id', id)
 			.single();
 
-    if (storyError) {
-      const errorMessage = `Error fetching story ${id}, please try again later.`;
-      setFlash({ type: 'error', message: errorMessage }, event.cookies);
-      return error(500, errorMessage);
-    }
-		
+		if (storyError) {
+			const errorMessage = `Error fetching story ${id}, please try again later.`;
+			setFlash({ type: 'error', message: errorMessage }, event.cookies);
+			return error(500, errorMessage);
+		}
+
 		return story;
 	}
 
@@ -75,17 +75,22 @@ export const actions = {
 			return redirect(303, '/story');
 		}),
 	unpublish: async (event) =>
-		handleFormAction(event, unpublishStorySchema, 'unpublish-story', async (event, userId, form) => {
-			const { error: supabaseModerationError } = await event.locals.supabase
-			.from('story_moderation')
-			.update({ status: 'pending', comment: 'Pending moderation' })
-			.eq('id', form.data.id);
+		handleFormAction(
+			event,
+			unpublishStorySchema,
+			'unpublish-story',
+			async (event, userId, form) => {
+				const { error: supabaseModerationError } = await event.locals.supabase
+					.from('story_moderation')
+					.update({ status: 'pending', comment: 'Pending moderation' })
+					.eq('id', form.data.id);
 
-			if (supabaseModerationError) {
-				setFlash({ type: 'error', message: supabaseModerationError.message }, event.cookies);
-				return fail(500, { message: supabaseModerationError.message, form });
+				if (supabaseModerationError) {
+					setFlash({ type: 'error', message: supabaseModerationError.message }, event.cookies);
+					return fail(500, { message: supabaseModerationError.message, form });
+				}
+
+				return redirect(303, '/story');
 			}
-
-			return redirect(303, '/story');
-		}),
-}
+		),
+};

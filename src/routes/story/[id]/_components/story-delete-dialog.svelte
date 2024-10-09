@@ -23,7 +23,8 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Você tem certeza?</AlertDialog.Title>
 			<AlertDialog.Description>
-				Esta ação não poderá ser desfeita. Isto irá permanentemente excluir esta história e remover estes dados dos nossos servidores. 
+				Esta ação não poderá ser desfeita. Isto irá permanentemente excluir esta história e remover
+				estes dados dos nossos servidores.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>

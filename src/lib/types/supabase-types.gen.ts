@@ -612,9 +612,9 @@ export type Database = {
       }
       story: {
         Row: {
+          fts: unknown | null
           id: number
           image: string[]
-          updated_at: string
           inserted_at: string
           insights_gpt: string | null
           pub_quotes: string[] | null
@@ -624,11 +624,13 @@ export type Database = {
           role: Database["public"]["Enums"]["story_role"]
           storyteller: string
           tags: string[]
-          transcription: string | null
-          user_id: string
           template: string | null
+          transcription: string | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
+          fts?: unknown | null
           id?: number
           image: string[]
           inserted_at?: string
@@ -640,11 +642,13 @@ export type Database = {
           role: Database["public"]["Enums"]["story_role"]
           storyteller: string
           tags: string[]
+          template?: string | null
           transcription?: string | null
+          updated_at?: string
           user_id: string
-          template: string | null
         }
         Update: {
+          fts?: unknown | null
           id?: number
           image?: string[]
           inserted_at?: string
@@ -656,9 +660,10 @@ export type Database = {
           role?: Database["public"]["Enums"]["story_role"]
           storyteller?: string
           tags?: string[]
+          template?: string | null
           transcription?: string | null
+          updated_at?: string
           user_id?: string
-          template: string | null
         }
         Relationships: [
           {
@@ -666,6 +671,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_view"
             referencedColumns: ["id"]
           },
         ]
@@ -718,6 +730,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_moderation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_view"
             referencedColumns: ["id"]
           },
         ]
@@ -1028,6 +1047,7 @@ export type Database = {
       }
       story_view: {
         Row: {
+          fts: unknown | null
           id: number | null
           image: string[] | null
           inserted_at: string | null
@@ -1042,9 +1062,10 @@ export type Database = {
           role: Database["public"]["Enums"]["story_role"] | null
           storyteller: string | null
           tags: string[] | null
-          transcription: string | null
-          user_id: string | null
           template: string | null
+          transcription: string | null
+          updated_at: string | null
+          user_id: string | null
         }
         Relationships: [
           {
@@ -1052,6 +1073,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_view"
             referencedColumns: ["id"]
           },
         ]
@@ -1240,3 +1268,4 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
+

@@ -4,7 +4,7 @@ import { error } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 
 export const load = async (event) => {
-	const { session, user, profile } = await event.parent();
+	const { user } = await event.parent();
 
 	const search = stringQueryParam().decode(event.url.searchParams.get('s'));
 	const tags = arrayQueryParam().decode(event.url.searchParams.get('tags'));
@@ -29,7 +29,7 @@ export const load = async (event) => {
 		const { data: stories, error: storiesError } = await query;
 
 		if (storiesError) {
-			console.log(storiesError)
+			console.log(storiesError);
 			const errorMessage = 'Error fetching stories, please try again later.';
 			setFlash({ type: 'error', message: errorMessage }, event.cookies);
 			return error(500, errorMessage);
@@ -65,10 +65,9 @@ export const load = async (event) => {
 		return user ? user.role !== 'user' : false;
 	}
 
-
 	return {
 		stories: await getStories(),
 		permission: await getUserPermission(),
-		tags: await getTags()
+		tags: await getTags(),
 	};
 };
