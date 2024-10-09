@@ -198,7 +198,7 @@ async function generate_story(role, transcription:string) {
 }
 
 const getIdentifier = (url: string) => {
-  const regex = /\/([^/]+)\.(mov|mp3|mp4|3gp|avi|mkv|flv|wmv|wav|ogg)$/i;
+  const regex = /\/([^/]+)\.(mov|mp3|mp4|3gp|avi|mkv|flv|wmv|wav|ogg|aac)$/i;
   const match = url.match(regex);
   return match ? match[1] : null;
 };
