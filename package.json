@@ -53,7 +53,6 @@
 		"@internationalized/date": "^3.5.6",
 		"@supabase/ssr": "^0.5.1",
 		"@supabase/supabase-js": "^2.45.4",
-		"axios": "^1.7.7",
 		"bits-ui": "^0.21.16",
 		"cloudinary": "^2.5.1",
 		"cloudinary-core": "^2.13.1",
