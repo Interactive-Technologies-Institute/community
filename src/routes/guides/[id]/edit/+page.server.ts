@@ -25,9 +25,9 @@ export const load = async (event) => {
 			setFlash({ type: 'error', message: errorMessage }, event.cookies);
 			return error(500, errorMessage);
 		}
-		const image = event.locals.supabase.storage.from('howtos').getPublicUrl(guide.image);
+		const image = event.locals.supabase.storage.from('guides').getPublicUrl(guide.image);
 		const stepsWithImageUrl = guide.steps.map((step) => {
-			const stepImage = event.locals.supabase.storage.from('howtos').getPublicUrl(step.image);
+			const stepImage = event.locals.supabase.storage.from('guides').getPublicUrl(step.image);
 			return { ...step, image: undefined, imageUrl: stepImage.data.publicUrl };
 		});
 		return { ...guide, image: undefined, imageUrl: image.data.publicUrl, steps: stepsWithImageUrl };
@@ -52,7 +52,7 @@ export const actions = {
 				const filePath = `${userId}_${uuidv4()}.${fileExt}`;
 
 				const { data: imageFileData, error: imageFileError } = await event.locals.supabase.storage
-					.from('howtos')
+					.from('guides')
 					.upload(filePath, image);
 
 				if (imageFileError) {
@@ -71,7 +71,7 @@ export const actions = {
 				const filePath = `step-${index}_${uuidv4()}.${fileExt}`;
 
 				const { data: imageFileData, error: imageFileError } = await event.locals.supabase.storage
-					.from('howtos')
+					.from('guides')
 					.upload(filePath, image);
 
 				if (imageFileError) {

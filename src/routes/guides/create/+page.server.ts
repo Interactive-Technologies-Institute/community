@@ -30,7 +30,7 @@ export const actions = {
 				const filePath = `${uuidv4()}.${fileExt}`;
 
 				const { data: imageFileData, error: imageFileError } = await event.locals.supabase.storage
-					.from('howtos')
+					.from('guides')
 					.upload(filePath, image);
 
 				if (imageFileError) {
@@ -49,7 +49,7 @@ export const actions = {
 				const filePath = `step-${index}_${uuidv4()}.${fileExt}`;
 
 				const { data: imageFileData, error: imageFileError } = await event.locals.supabase.storage
-					.from('howtos')
+					.from('guides')
 					.upload(filePath, image);
 
 				if (imageFileError) {

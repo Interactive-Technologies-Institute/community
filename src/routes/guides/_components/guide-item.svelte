@@ -16,7 +16,7 @@
 		rejected: 'Rejected',
 	};
 
-	$: imageUrl = $page.data.supabase.storage.from('howtos').getPublicUrl(guide.image).data.publicUrl;
+	$: imageUrl = $page.data.supabase.storage.from('guides').getPublicUrl(guide.image).data.publicUrl;
 </script>
 
 <a href="/guides/{guide.id}" class="h-full">

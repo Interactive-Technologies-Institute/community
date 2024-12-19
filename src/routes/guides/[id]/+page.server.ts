@@ -22,9 +22,9 @@ export const load = async (event) => {
 			return error(500, errorMessage);
 		}
 
-		const image = event.locals.supabase.storage.from('howtos').getPublicUrl(guide.image);
+		const image = event.locals.supabase.storage.from('guides').getPublicUrl(guide.image);
 		const stepsWithImageUrl = guide.steps.map((step) => {
-			const stepImage = event.locals.supabase.storage.from('howtos').getPublicUrl(step.image);
+			const stepImage = event.locals.supabase.storage.from('guides').getPublicUrl(step.image);
 			return { ...step, image: stepImage.data.publicUrl };
 		});
 		return { ...guide, image: image.data.publicUrl, steps: stepsWithImageUrl };
