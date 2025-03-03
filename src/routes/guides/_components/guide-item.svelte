@@ -20,7 +20,6 @@
 	$: imageUrl = $page.data.supabase.storage.from('guides').getPublicUrl(guide.image).data.publicUrl;
 
 	$: updatedAt = new Date(guide.updated_at).toLocaleString();
-
 </script>
 
 <a href="/guides/{guide.id}" class="h-full">
@@ -47,8 +46,6 @@
 					<Button variant="secondary" size="sm">{guide.difficulty}</Button>
 					<Button variant="secondary" size="sm">{usefulCount}</Button>
 				</div>
-				
-				
 			</div>
 			<div class="flex flex-wrap gap-2">
 				{#each guide.tags as tag}

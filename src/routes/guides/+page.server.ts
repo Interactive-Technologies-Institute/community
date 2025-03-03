@@ -78,6 +78,6 @@ export const load = async (event) => {
 	return {
 		guides: await getGuides(),
 		tags: await getTags(),
-		usefulCount: usefulCount.count
+		usefulCount: usefulCount.count,
 	};
 };
