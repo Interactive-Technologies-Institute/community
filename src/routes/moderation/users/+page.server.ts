@@ -35,7 +35,9 @@ export const actions = {
 			event,
 			updateUserRoleSchema,
 			'update-user-role',
-			async (event, userId, form) => {
+			async (event, _loggedInUserId, form) => {
+				const userId = form.data.userId;
+
 				const { error: supabaseError } = await event.locals.supabase
 					.from('user_roles')
 					.update({ role: form.data.role })

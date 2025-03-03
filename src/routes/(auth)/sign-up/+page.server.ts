@@ -1,3 +1,4 @@
+import { goto } from '$app/navigation';
 import { signUpSchema } from '@/schemas/sign-up';
 import { handleFormAction } from '@/utils';
 import { fail, redirect } from '@sveltejs/kit';
@@ -39,10 +40,7 @@ export const actions = {
 					return fail(500, { message: error.message, form });
 				}
 
-				setFlash(
-					{ type: 'success', message: 'Please check your email for a confirmation link.' },
-					event.cookies
-				);
+				redirect(302, '/sign-up/success');
 				return { form };
 			},
 			{ requireAuth: false }

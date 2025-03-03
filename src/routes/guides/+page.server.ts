@@ -4,6 +4,7 @@ import { error } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 
 export const load = async (event) => {
+	const { user } = await event.locals.safeGetSession();
 	const search = stringQueryParam().decode(event.url.searchParams.get('s'));
 	const tags = arrayQueryParam().decode(event.url.searchParams.get('tags'));
 
@@ -15,7 +16,7 @@ export const load = async (event) => {
 			.order('inserted_at', { ascending: false });
 
 		if (search) {
-			query = query.textSearch('fts', search, { config: 'simple', type: 'websearch' });
+			query = query.ilike('title', `%${search}%`);
 		}
 
 		if (tags && tags.length) {
@@ -56,8 +57,27 @@ export const load = async (event) => {
 		return tagMap;
 	}
 
+	async function getUsefulCount(id: string): Promise<{ count: number; userUseful: boolean }> {
+		const { data: usefuls, error: usefulsError } = await event.locals.supabase
+			.rpc('get_guide_useful_count', {
+				guide_id: parseInt(id),
+				user_id: user?.id,
+			})
+			.single();
+
+		if (usefulsError) {
+			const errorMessage = 'Error fetching useful count, please try again later.';
+			setFlash({ type: 'error', message: errorMessage }, event.cookies);
+			return error(500, errorMessage);
+		}
+		return { count: usefuls.count, userUseful: usefuls.has_useful };
+	}
+
+	const usefulCount = await getUsefulCount(event.params.id);
+
 	return {
 		guides: await getGuides(),
 		tags: await getTags(),
+		usefulCount: usefulCount.count
 	};
 };

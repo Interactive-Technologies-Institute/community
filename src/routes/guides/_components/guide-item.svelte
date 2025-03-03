@@ -8,6 +8,7 @@
 	import { Tag } from 'lucide-svelte';
 
 	export let guide: Guide;
+	export let usefulCount: number;
 
 	const moderationStatusLabels = {
 		pending: 'Pending',
@@ -17,6 +18,9 @@
 	};
 
 	$: imageUrl = $page.data.supabase.storage.from('guides').getPublicUrl(guide.image).data.publicUrl;
+
+	$: updatedAt = new Date(guide.updated_at).toLocaleString();
+
 </script>
 
 <a href="/guides/{guide.id}" class="h-full">
@@ -38,6 +42,13 @@
 			<div class="mb-5">
 				<h2 class="line-clamp-2 text-lg font-medium">{guide.title}</h2>
 				<p class="line-clamp-2 text-muted-foreground">{guide.description}</p>
+				<p class="mt-2 text-sm text-muted-foreground">Updated at: {updatedAt}</p>
+				<div class="flex flex-wrap gap-2">
+					<Button variant="secondary" size="sm">{guide.difficulty}</Button>
+					<Button variant="secondary" size="sm">{usefulCount}</Button>
+				</div>
+				
+				
 			</div>
 			<div class="flex flex-wrap gap-2">
 				{#each guide.tags as tag}
