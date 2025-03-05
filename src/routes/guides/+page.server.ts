@@ -7,13 +7,25 @@ export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
 	const search = stringQueryParam().decode(event.url.searchParams.get('s'));
 	const tags = arrayQueryParam().decode(event.url.searchParams.get('tags'));
+	const sortBy = stringQueryParam().decode(event.url.searchParams.get('sortBy'));
+	const sortOrder = stringQueryParam().decode(event.url.searchParams.get('sortOrder'));
 
 	async function getGuides(): Promise<Guide[]> {
 		let query = event.locals.supabase
 			.from('guides_view')
-			.select('*')
-			.order('moderation_status', { ascending: true })
-			.order('inserted_at', { ascending: false });
+			.select('*');
+
+			if (sortBy === 'date_updated') {
+				query = query.order('updated_at', { ascending: sortOrder === 'asc' });
+			} else if (sortBy === 'difficulty') {
+				query = query.order('difficulty', { ascending: sortOrder === 'asc' });
+			} else if (sortBy === 'duration') {
+				query = query.order('duration', { ascending: sortOrder === 'asc' });
+			} else {
+				// Default sort if nothing is selected.
+				query = query.order('moderation_status', { ascending: true })
+										 .order('inserted_at', { ascending: false });
+			}
 
 		if (search) {
 			query = query.ilike('title', `%${search}%`);
