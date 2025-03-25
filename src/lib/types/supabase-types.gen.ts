@@ -305,6 +305,56 @@ export type Database = {
           },
         ]
       }
+      guides_bookmark: {
+        Row: {
+          guide_id: number
+          id: number
+          inserted_at: string
+          user_id: string
+        }
+        Insert: {
+          guide_id: number
+          id?: number
+          inserted_at?: string
+          user_id: string
+        }
+        Update: {
+          guide_id?: number
+          id?: number
+          inserted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guides_bookmark_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guides_bookmark_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guides_bookmark_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guides_bookmark_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guides_moderation: {
         Row: {
           comment: string
@@ -582,15 +632,7 @@ export type Database = {
           type?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       role_permissions: {
         Row: {
@@ -623,15 +665,7 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_types: {
         Row: {
@@ -897,15 +931,7 @@ export type Database = {
           type: string | null
           updated_at: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
@@ -931,6 +957,15 @@ export type Database = {
           has_interest: boolean
         }[]
       }
+      get_guide_bookmark: {
+        Args: {
+          guide_id: number
+          user_id?: string
+        }
+        Returns: {
+          has_bookmark: boolean
+        }[]
+      }
       get_guide_useful_count: {
         Args: {
           guide_id: number
@@ -939,6 +974,33 @@ export type Database = {
         Returns: {
           count: number
           has_useful: boolean
+        }[]
+      }
+      get_guides_ordered_by_useful: {
+        Args: {
+          sort_order?: string
+          search?: string
+          tag_filters?: string[]
+          user_id?: string
+          filter_liked?: boolean
+          filter_bookmarked?: boolean
+        }
+        Returns: {
+          description: string | null
+          difficulty: Database["public"]["Enums"]["guide_difficulty"] | null
+          duration: Database["public"]["Enums"]["guide_duration"] | null
+          fts: unknown | null
+          id: number | null
+          image: string | null
+          inserted_at: string | null
+          moderation_status:
+            | Database["public"]["Enums"]["moderation_status"]
+            | null
+          steps: Json[] | null
+          tags: string[] | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
         }[]
       }
       update_user_types: {
@@ -1085,5 +1147,20 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 

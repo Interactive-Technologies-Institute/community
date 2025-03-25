@@ -5,10 +5,10 @@ import { setFlash } from 'sveltekit-flash-message/server';
 
 export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
-	const search = stringQueryParam().decode(event.url.searchParams.get('s'));
-	const tags = arrayQueryParam().decode(event.url.searchParams.get('tags'));
-	const sortBy = stringQueryParam().decode(event.url.searchParams.get('sortBy'));
-	const sortOrder = stringQueryParam().decode(event.url.searchParams.get('sortOrder'));
+	const search = stringQueryParam().decode(event.url.searchParams.get('s')) ?? '';
+	const filters = arrayQueryParam().decode(event.url.searchParams.get('filters')) ?? [];
+	const sortBy = stringQueryParam().decode(event.url.searchParams.get('sortBy')) ?? 'data_updated'; 
+	const sortOrder = stringQueryParam().decode(event.url.searchParams.get('sortOrder')) ?? 'desc';
 
 	async function getGuides(): Promise<Guide[]> {
 		let query = event.locals.supabase
@@ -21,31 +21,75 @@ export const load = async (event) => {
 				query = query.order('difficulty', { ascending: sortOrder === 'asc' });
 			} else if (sortBy === 'duration') {
 				query = query.order('duration', { ascending: sortOrder === 'asc' });
-			} else {
-				// Default sort if nothing is selected.
-				query = query.order('moderation_status', { ascending: true })
-										 .order('inserted_at', { ascending: false });
+			} else if (sortBy === 'likes') {
+				const { data: guides, error: guidesError } = await event.locals.supabase
+				.rpc('get_guides_ordered_by_useful', {
+					sort_order: sortOrder,
+					search: search,
+					tag_filters: filters.filter(tag => tag !== 'liked' && tag !== 'bookmarked'),
+					user_id: user?.id,
+					filter_liked: filters.includes('liked'),
+					filter_bookmarked: filters.includes('bookmarked')
+				});
+				
+				if (guidesError) {
+					const errorMessage = 'Error fetching guides by likes, please try again later.';
+					setFlash({ type: 'error', message: errorMessage }, event.cookies);
+					return error(500, errorMessage);
+				}
+				
+				return guides;
+			}
+			
+			if (search) {
+				query = query.ilike('title', `%${search}%`);
+			}
+			
+			// Handle  filters
+			if (filters && filters.length) {
+				const likedFilter = filters.includes('liked');
+				const bookmarkedFilter = filters.includes('bookmarked');
+				const tagsFilter = filters.filter(tag => tag !== 'liked' && tag !== 'bookmarked');
+
+				if (tagsFilter.length > 0) {
+					query = query.overlaps('tags', tagsFilter);
+				}
+
+				if (likedFilter && user) {
+					const { data: likedGuideIds } = await event.locals.supabase
+						.from('guides_useful')
+						.select('guide_id')
+						.eq('user_id', user.id);
+					
+					if (likedGuideIds) {
+						query = query.in('id', likedGuideIds.map(g => g.guide_id));
+					}
+				}
+
+				if (bookmarkedFilter && user) {
+					const { data: bookmarkedGuideIds } = await event.locals.supabase
+						.from('guides_bookmark')
+						.select('guide_id')
+						.eq('user_id', user.id);
+					
+					if (bookmarkedGuideIds) {
+						query = query.in('id', bookmarkedGuideIds.map(g => g.guide_id));
+					}
+				}
 			}
 
-		if (search) {
-			query = query.ilike('title', `%${search}%`);
+			const { data: guides, error: guidesError } = await query;
+			
+			if (guidesError) {
+				const errorMessage = 'Error fetching guides, please try again later.';
+				setFlash({ type: 'error', message: errorMessage }, event.cookies);
+				return error(500, errorMessage);
+			}
+
+			return guides;
 		}
-
-		if (tags && tags.length) {
-			query = query.overlaps('tags', tags);
-		}
-
-		const { data: guides, error: guidesError } = await query;
-
-		if (guidesError) {
-			const errorMessage = 'Error fetching guides, please try again later.';
-			setFlash({ type: 'error', message: errorMessage }, event.cookies);
-			return error(500, errorMessage);
-		}
-		return guides;
-	}
-
-	async function getTags(): Promise<Map<string, number>> {
+		
+		async function getTags(): Promise<Map<string, number>> {
 		const { data: tags, error: tagsError } = await event.locals.supabase
 			.from('guides_tags')
 			.select();
@@ -69,10 +113,10 @@ export const load = async (event) => {
 		return tagMap;
 	}
 
-	async function getUsefulCount(id: string): Promise<{ count: number; userUseful: boolean }> {
+	async function getUsefulCount(id: number): Promise<{ count: number; userUseful: boolean }> {
 		const { data: usefuls, error: usefulsError } = await event.locals.supabase
 			.rpc('get_guide_useful_count', {
-				guide_id: parseInt(id),
+				guide_id: id,
 				user_id: user?.id,
 			})
 			.single();
@@ -85,11 +129,49 @@ export const load = async (event) => {
 		return { count: usefuls.count, userUseful: usefuls.has_useful };
 	}
 
-	const usefulCount = await getUsefulCount(event.params.id);
+	async function getBookmark(id: number): Promise<{ userBookmark: boolean }> {
+		const { data: bookmark, error: bookmarkError } = await event.locals.supabase
+			.rpc('get_guide_bookmark', {
+				guide_id: id,
+				user_id: user?.id,
+			})
+			.single();
+
+		if (bookmarkError) {
+			const errorMessage = 'Error fetching bookmark, please try again later.';
+			setFlash({ type: 'error', message: errorMessage }, event.cookies);
+			return error(500, errorMessage);
+		}
+
+		return { userBookmark: bookmark.has_bookmark };
+	}
+
+	async function getGuidesInfoMap(guides: Guide[]): Promise<Map<Guide, { useful: { count: number, userUseful: boolean }, bookmark: { userBookmark: boolean } }>> {
+    const guideInfoMap = new Map<Guide, { useful: { count: number, userUseful: boolean }, bookmark: { userBookmark: boolean } }>();
+
+    const guideInfos = await Promise.all(
+        guides.map(async (guide) => {
+            const { id } = guide;
+            const [useful, bookmark] = await Promise.all([
+                getUsefulCount(id),
+                getBookmark(id)
+            ]);
+            return { guide, useful, bookmark };
+        })
+    );
+
+    guideInfos.forEach(({ guide, useful, bookmark }) => 
+        guideInfoMap.set(guide, { useful, bookmark })
+    );
+
+    return guideInfoMap;
+	}
+
+	const guides = await getGuides();
+	const guidesInfoMap = await getGuidesInfoMap(guides);
 
 	return {
-		guides: await getGuides(),
+		guides: guidesInfoMap,
 		tags: await getTags(),
-		usefulCount: usefulCount.count
 	};
 };
