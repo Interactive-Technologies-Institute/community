@@ -59,13 +59,13 @@ select count(*) as count,
 		when exists (
 			select 1
 			from public.guides_useful
-			where user_id = user_id
-				and guide_id = guide_id
+			where user_id = $2
+				and guide_id = $1
 		) then true
 		else false
 	end as has_useful
 from public.guides_useful
-where guide_id = guide_id;
+where guide_id = $1;
 $$;
 create view public.latest_guides_moderation with (security_invoker = on) as
 select distinct on (guide_id) *
@@ -165,6 +165,21 @@ insert with check (
 		and auth.uid() = user_id
 	);
 create policy "Allow users to delete their own guides useful" on public.guides_useful for delete using (
+	(
+		select authorize('guides.delete')
+	)
+	and auth.uid() = user_id
+);
+create policy "Allow users to read their own guides bookmark" on public.guides_bookmark for
+select using (auth.uid() = user_id);
+create policy "Allow users to create their own guides bookmark" on public.guides_bookmark for
+insert with check (
+		(
+			select authorize('guides.create')
+		)
+		and auth.uid() = user_id
+	);
+create policy "Allow users to delete their own guides bookmark" on public.guides_bookmark for delete using (
 	(
 		select authorize('guides.delete')
 	)

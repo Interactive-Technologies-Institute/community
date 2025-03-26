@@ -14,6 +14,6 @@
 	slug={$page.params.slug}
 	title={data.meta.title}
 />
-<div class="prose mt-6 max-w-none dark:prose-invert">
+<div class="prose dark:prose-invert mt-6 max-w-none">
 	<svelte:component this={data.content} />
 </div>

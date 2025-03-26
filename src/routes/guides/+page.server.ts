@@ -5,27 +5,22 @@ import { setFlash } from 'sveltekit-flash-message/server';
 
 export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
-	const search = stringQueryParam().decode(event.url.searchParams.get('s'));
-	const tags = arrayQueryParam().decode(event.url.searchParams.get('tags'));
-	const sortBy = stringQueryParam().decode(event.url.searchParams.get('sortBy'));
-	const sortOrder = stringQueryParam().decode(event.url.searchParams.get('sortOrder'));
+	const search = stringQueryParam().decode(event.url.searchParams.get('s')) ?? '';
+	const tags = arrayQueryParam().decode(event.url.searchParams.get('tags')) ?? [];
+	const sortBy = stringQueryParam().decode(event.url.searchParams.get('sortBy')) ?? 'date_updated';
+	const sortOrder = stringQueryParam().decode(event.url.searchParams.get('sortOrder')) ?? 'desc';
 
 	async function getGuides(): Promise<Guide[]> {
-		let query = event.locals.supabase
-			.from('guides_view')
-			.select('*');
+		let query = event.locals.supabase.from('guides_view').select('*');
 
-			if (sortBy === 'date_updated') {
-				query = query.order('updated_at', { ascending: sortOrder === 'asc' });
-			} else if (sortBy === 'difficulty') {
-				query = query.order('difficulty', { ascending: sortOrder === 'asc' });
-			} else if (sortBy === 'duration') {
-				query = query.order('duration', { ascending: sortOrder === 'asc' });
-			} else {
-				// Default sort if nothing is selected.
-				query = query.order('moderation_status', { ascending: true })
-										 .order('inserted_at', { ascending: false });
-			}
+		if (sortBy === 'date_updated') {
+			query = query.order('updated_at', { ascending: sortOrder === 'asc' });
+		} else if (sortBy === 'difficulty') {
+			query = query.order('difficulty', { ascending: sortOrder === 'asc' });
+		} else if (sortBy === 'duration') {
+			query = query.order('duration', { ascending: sortOrder === 'asc' });
+		} else if (sortBy === 'likes') {
+		}
 
 		if (search) {
 			query = query.ilike('title', `%${search}%`);
@@ -69,10 +64,10 @@ export const load = async (event) => {
 		return tagMap;
 	}
 
-	async function getUsefulCount(id: string): Promise<{ count: number; userUseful: boolean }> {
+	async function getUsefulCount(id: number): Promise<{ count: number; userUseful: boolean }> {
 		const { data: usefuls, error: usefulsError } = await event.locals.supabase
 			.rpc('get_guide_useful_count', {
-				guide_id: parseInt(id),
+				guide_id: id,
 				user_id: user?.id,
 			})
 			.single();
@@ -85,11 +80,30 @@ export const load = async (event) => {
 		return { count: usefuls.count, userUseful: usefuls.has_useful };
 	}
 
-	const usefulCount = await getUsefulCount(event.params.id);
+	async function getGuidesInfoMap(
+		guides: Guide[]
+	): Promise<Map<Guide, { useful: { count: number; userUseful: boolean } }>> {
+		const guideInfoMap = new Map<Guide, { useful: { count: number; userUseful: boolean } }>();
+
+		const guideInfos = await Promise.all(
+			guides.map(async (guide) => {
+				const { id } = guide;
+				const useful = await getUsefulCount(id);
+
+				return { guide, useful };
+			})
+		);
+
+		guideInfos.forEach(({ guide, useful }) => guideInfoMap.set(guide, { useful }));
+
+		return guideInfoMap;
+	}
+
+	const guides = await getGuides();
+	const guidesInfoMap = await getGuidesInfoMap(guides);
 
 	return {
-		guides: await getGuides(),
+		guides: guidesInfoMap,
 		tags: await getTags(),
-		usefulCount: usefulCount.count,
 	};
 };

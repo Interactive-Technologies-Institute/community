@@ -27,7 +27,7 @@
 	<div class="flex flex-1 flex-row gap-x-2 sm:gap-x-4 md:flex-auto">
 		<Input placeholder="Search..." class="flex-1 sm:max-w-64" bind:value={$search}></Input>
 		<TagFilterButton tags={data.tags} bind:filterValues={$tags} />
-		<SortButton bind:sortBy={$sortBy} bind:sortOrder={$sortOrder}/>
+		<SortButton bind:sortBy={$sortBy} bind:sortOrder={$sortOrder} />
 	</div>
 	<Button href="/guides/create" class="w-10 p-0 sm:w-auto sm:px-4 sm:py-2">
 		<PlusCircle class="h-4 w-4 sm:mr-2" />
@@ -35,7 +35,7 @@
 	</Button>
 </div>
 <div class="container mx-auto grid grid-cols-1 gap-6 py-10 md:grid-cols-2 lg:grid-cols-3">
-	{#each data.guides as guide}
-		<GuideItem {guide} usefulCount={data.usefulCount} />
+	{#each data.guides as [guide, guideInfo]}
+		<GuideItem {guide} useful={guideInfo.useful} />
 	{/each}
 </div>

@@ -2,7 +2,7 @@
 	import { Button } from '@/components/ui/button';
 	import { toggleGuideUsefulSchema, type ToggleGuideUsefulSchema } from '@/schemas/guide';
 	import { cn } from '@/utils';
-	import { Bookmark } from 'lucide-svelte';
+	import { ThumbsUp } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
@@ -34,11 +34,11 @@
 <form method="POST" action="?/toggleUseful" use:enhance>
 	<input type="hidden" name="value" value={$formData.value} />
 	<Button type="button" on:click={toggleUseful} variant="outline" size="sm">
-		<Bookmark class={cn('mr-2 h-4 w-4', { 'fill-foreground': $formData.value })} />
+		<ThumbsUp class={cn('mr-2 h-4 w-4', { 'fill-foreground': $formData.value })} />
 		{#if $formData.value}
-			Marked as useful
+			Liked this guide
 		{:else}
-			Mark as useful
+			Like this guide
 		{/if}
 		<span class="ml-4 font-mono text-xs">{count}</span>
 	</Button>
