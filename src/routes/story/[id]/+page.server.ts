@@ -23,7 +23,7 @@ export const load = async (event) => {
 			return error(500, errorMessage);
 		}
 
-		return story;
+		return story as Story;
 	}
 
 	async function getStoryModeration(id: string): Promise<ModerationInfo> {

@@ -7,7 +7,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (event) => {
-	const getExtension = (url) => {
+	const getExtension = (url : string) => {
 		const match = url.match(/\.([0-9a-z]+)(?:[\?#]|$)/i);
 		return match ? match[1] : null;
 	};

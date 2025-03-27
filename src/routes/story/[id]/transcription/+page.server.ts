@@ -1,8 +1,9 @@
+import type { Story } from '@/types/types.js';
 import { error } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 
 export const load = async (event) => {
-	async function getStoryInfo(id: string): Promise<String> {
+	async function getStoryInfo(id: string): Promise<Story> {
 		const { data: storyInfo, error: storyError } = await event.locals.supabase
 			.from('story')
 			.select('id, recording_link, transcription')
@@ -15,7 +16,7 @@ export const load = async (event) => {
 			return error(500, errorMessage);
 		}
 
-		return storyInfo;
+		return storyInfo as Story;
 	}
 
 	return {

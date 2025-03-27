@@ -97,7 +97,7 @@
 
 	$: submittingSave = false;
 	$: submittingPublish = false;
-	let apiImage: CarouselAPI;
+	let apiImage : CarouselAPI;
 	let apiQuote: CarouselAPI;
 	let currentFirstImage = 0;
 	let currentQuote = 0;

@@ -41,7 +41,7 @@ export const load = async (event) => {
 
 	return {
 		stories: await getStory(event.params.id),
-		userId: user.id,
+		userId: user?.id,
 	};
 };
 export const actions = {

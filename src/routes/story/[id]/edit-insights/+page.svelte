@@ -39,7 +39,7 @@
 	let community_text =
 		'Eu tenho uma transcrição de uma atendente e um cliente. A atendente faz as seguintes perguntas: Fale-nos de si (o seu nome, idade, bairro onde vive), Fale-nos de um problema que o Balcão o ajudou a resolver e das consequências desse problema, Diga-nos como o Balcão o ajudou a resolver o problema, especificando ao máximo os passos e todas as barreiras que enfrentou, Diz-nos como te sentiste quando o Balcão te ajudou, qual foi o impacto na tua vida?, Como resolverias isso se o Balcão não existisse? Seria mais fácil ou mais difícil? E a partir da transcrição, diga quais são os pontos fortes do balcão e quais pontos precisam ser melhorados. No máximo 3 de cada e escolha os mais importantes e relevantes.';
 
-	async function transcribe(audioFile) {
+	async function transcribe(audioFile: File) {
 		try {
 			const transcription = await openai.audio.transcriptions.create({
 				file: audioFile,
@@ -54,7 +54,7 @@
 		}
 	}
 
-	async function generate_insights(role, transcription: string) {
+	async function generate_insights(role: string, transcription: string) {
 		try {
 			const response = await openai.chat.completions.create({
 				model: 'gpt-3.5-turbo',
@@ -94,7 +94,8 @@
 	const getBlobFromUrl = async (url: string) => {
 		const response = await fetch(url);
 		const arrayBuffer = await response.arrayBuffer();
-		const blob = new Blob([arrayBuffer], { type: response.headers.get('content-type') });
+		const contentType = response.headers.get('content-type') || 'application/octet-stream';
+		const blob = new Blob([arrayBuffer], { type: contentType });
 		return blob;
 	};
 
@@ -125,8 +126,9 @@
 		if (!formData.transcription) {
 			try {
 				const transcriptionResult = await transcribeRecording(formData.recording_link);
-				transcription = transcriptionResult;
-				insights = await generate_insights(formData.role, transcription);
+				transcription = transcriptionResult ?? "";
+				let insightsResult = await generate_insights(formData.role, transcription) ?? "";
+				insights = typeof insightsResult === 'string' ? insightsResult : insightsResult?.choices[0]?.message.content ?? '';
 			} catch (error) {
 				console.error('Failed to transcribe recording:', error);
 			}
@@ -134,8 +136,8 @@
 			if (formData.insights_gpt) {
 				insights = formData.insights_gpt;
 			} else {
-				let insightsResult = await generate_insights(formData.role, formData.transcription);
-				insights = insightsResult.choices[0].message.content;
+				let insightsResult = await generate_insights(formData.role, transcription) ?? "";
+				insights = typeof insightsResult === 'string' ? insightsResult : insightsResult?.choices[0]?.message.content ?? '';
 			}
 		}
 
@@ -146,7 +148,7 @@
 		});
 	});
 
-	async function submitUpdateStoryForm(event) {
+	async function submitUpdateStoryForm(event: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) {
 		submitting = true;
 		event.preventDefault();
 
@@ -177,7 +179,7 @@
 		applyAction(result);
 	}
 
-	function adjustTextareaHeight(textarea) {
+	function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
 		textarea.style.height = 'auto';
 		textarea.style.height = `${textarea.scrollHeight}px`;
 	}

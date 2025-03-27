@@ -23,7 +23,7 @@ export const actions = {
 		handleFormAction(event, createStorySchema, 'create-story', async (event, userId, form) => {
 			const { error: supabaseError } = await event.locals.supabase
 				.from('story')
-				.insert({ ...form.data, user_id: userId });
+				.insert({ ...form.data, user_id: userId, recording_link: form.data.recording_link ?? '' });
 
 			if (supabaseError) {
 				setFlash({ type: 'error', message: supabaseError.message }, event.cookies);

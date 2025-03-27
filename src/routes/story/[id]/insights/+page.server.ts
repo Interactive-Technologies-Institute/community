@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 
 export const load = async (event) => {
-	async function getStoryInfo(id: string): Promise<String> {
+	async function getStoryInfo(id: string): Promise<{id: number, insights_gpt: string| null}> {
 		const { data: storyInfo, error: storyError } = await event.locals.supabase
 			.from('story')
 			.select('id, insights_gpt')
