@@ -5,11 +5,12 @@
 	import { Button } from '@/components/ui/button';
 	import { Card } from '@/components/ui/card';
 	import type { Guide } from '@/types/types';
-	import { Tag, ThumbsUp, ChartNoAxesColumn } from 'lucide-svelte';
+	import { Tag, ThumbsUp, ChartNoAxesColumn, Bookmark } from 'lucide-svelte';
 	import { cn } from '@/utils';
 
 	export let guide: Guide;
 	export let useful: { count: number; userUseful: boolean };
+	export let bookmark: { userBookmark: boolean } | null;
 
 	const moderationStatusLabels = {
 		pending: 'Pending',
@@ -54,6 +55,11 @@
 						<ThumbsUp class={cn('mr-2 h-4 w-4', { 'fill-foreground': useful.userUseful })} />
 						{useful.count}
 					</Button>
+					{#if bookmark}
+						<Button variant="secondary" size="sm">
+							<Bookmark class={cn('h-4 w-4', { 'fill-foreground': bookmark.userBookmark })} />
+						</Button>
+					{/if}
 				</div>
 			</div>
 			<div class="flex flex-wrap gap-2">

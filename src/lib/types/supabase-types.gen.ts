@@ -305,6 +305,56 @@ export type Database = {
           },
         ]
       }
+      guides_bookmark: {
+        Row: {
+          guide_id: number
+          id: number
+          inserted_at: string
+          user_id: string
+        }
+        Insert: {
+          guide_id: number
+          id?: number
+          inserted_at?: string
+          user_id: string
+        }
+        Update: {
+          guide_id?: number
+          id?: number
+          inserted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guides_bookmark_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guides_bookmark_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guides_bookmark_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guides_bookmark_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guides_moderation: {
         Row: {
           comment: string
@@ -905,6 +955,15 @@ export type Database = {
         Returns: {
           count: number
           has_interest: boolean
+        }[]
+      }
+      get_guide_bookmark: {
+        Args: {
+          guide_id: number
+          user_id?: string
+        }
+        Returns: {
+          has_bookmark: boolean
         }[]
       }
       get_guide_useful_count: {

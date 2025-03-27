@@ -94,20 +94,47 @@ export const load = async (event) => {
 		return { count: usefuls.count, userUseful: usefuls.has_useful };
 	}
 
+	async function getBookmark(id: number): Promise<{ userBookmark: boolean }> {
+		const { data: bookmark, error: bookmarkError } = await event.locals.supabase
+			.rpc('get_guide_bookmark', {
+				guide_id: id,
+				user_id: user?.id,
+			})
+			.single();
+
+		if (bookmarkError) {
+			const errorMessage = 'Error fetching bookmark, please try again later.';
+			setFlash({ type: 'error', message: errorMessage }, event.cookies);
+			return error(500, errorMessage);
+		}
+
+		return { userBookmark: bookmark.has_bookmark };
+	}
+
 	async function getGuidesInfoMap(
 		guides: Guide[]
-	): Promise<Map<Guide, { useful: { count: number; userUseful: boolean } }>> {
-		const guideInfoMap = new Map<Guide, { useful: { count: number; userUseful: boolean } }>();
+	): Promise<
+		Map<
+			Guide,
+			{ useful: { count: number; userUseful: boolean }; bookmark: { userBookmark: boolean } }
+		>
+	> {
+		const guideInfoMap = new Map<
+			Guide,
+			{ useful: { count: number; userUseful: boolean }; bookmark: { userBookmark: boolean } }
+		>();
 
 		const guideInfos = await Promise.all(
 			guides.map(async (guide) => {
 				const { id } = guide;
-				const useful = await getUsefulCount(id);
-				return { guide, useful };
+				const [useful, bookmark] = await Promise.all([getUsefulCount(id), getBookmark(id)]);
+				return { guide, useful, bookmark };
 			})
 		);
 
-		guideInfos.forEach(({ guide, useful }) => guideInfoMap.set(guide, { useful }));
+		guideInfos.forEach(({ guide, useful, bookmark }) =>
+			guideInfoMap.set(guide, { useful, bookmark })
+		);
 
 		return guideInfoMap;
 	}

@@ -79,3 +79,9 @@ export const toggleGuideUsefulSchema = z.object({
 });
 
 export type ToggleGuideUsefulSchema = typeof toggleGuideUsefulSchema;
+
+export const toggleGuideBookmarkSchema = z.object({
+	value: z.boolean(),
+});
+
+export type ToggleGuideBookmarkSchema = typeof toggleGuideBookmarkSchema;

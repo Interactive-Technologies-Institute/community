@@ -9,6 +9,7 @@
 	import { MetaTags } from 'svelte-meta-tags';
 	import GuideDeleteDialog from './_components/guide-delete-dialog.svelte';
 	import UsefulButton from './_components/useful-button.svelte';
+	import BookmarkButton from './_components/bookmark-button.svelte';
 
 	export let data;
 
@@ -51,7 +52,12 @@
 				{data.guide.difficulty}
 			</div>
 		</div>
-		<UsefulButton count={data.usefulCount} data={data.toggleUsefulForm} />
+		<div class="flex flex-row items-center justify-center gap-x-4">
+			<UsefulButton count={data.usefulCount} data={data.toggleUsefulForm} />
+			{#if data.user?.id}
+				<BookmarkButton data={data.toggleBookmarkForm} />
+			{/if}
+		</div>
 	</div>
 	<div class="mx-auto flex max-w-2xl flex-col gap-y-4">
 		<InteractableImage
