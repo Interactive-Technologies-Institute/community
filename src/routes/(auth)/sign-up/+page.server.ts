@@ -1,4 +1,3 @@
-import { goto } from '$app/navigation';
 import { signUpSchema } from '@/schemas/sign-up';
 import { handleFormAction } from '@/utils';
 import { fail, redirect } from '@sveltejs/kit';

@@ -82,6 +82,24 @@ select unnest(tags) as tag,
 	count(*) as count
 from public.guides
 group by tag;
+create function public.get_guides_ordered_by_useful(
+    sort_order text default 'desc',
+		tag_filters text[] default null
+) 
+returns setof public.guides_view 
+language sql 
+security definer 
+as $$
+select g.*
+from public.guides_view g
+where 
+    (tag_filters is null or array_length(tag_filters, 1) = 0)
+    or 
+    (tag_filters is not null and array_length(tag_filters, 1) > 0 and g.tags && tag_filters)
+order by 
+    case when sort_order = 'asc' then (select (get_guide_useful_count(g.id)).count) end asc,
+    case when sort_order = 'desc' then (select (get_guide_useful_count(g.id)).count) end desc
+$$;
 -- Storage Buckets
 -- insert into storage.buckets (id, name, public, allowed_mime_types)
 -- values ('guides', 'Guides', true, '{"image/*"}');
@@ -165,21 +183,6 @@ insert with check (
 		and auth.uid() = user_id
 	);
 create policy "Allow users to delete their own guides useful" on public.guides_useful for delete using (
-	(
-		select authorize('guides.delete')
-	)
-	and auth.uid() = user_id
-);
-create policy "Allow users to read their own guides bookmark" on public.guides_bookmark for
-select using (auth.uid() = user_id);
-create policy "Allow users to create their own guides bookmark" on public.guides_bookmark for
-insert with check (
-		(
-			select authorize('guides.create')
-		)
-		and auth.uid() = user_id
-	);
-create policy "Allow users to delete their own guides bookmark" on public.guides_bookmark for delete using (
 	(
 		select authorize('guides.delete')
 	)

@@ -131,6 +131,15 @@ export type Database = MergeDeep<
 					};
 				};
 			};
+			Functions: {
+				get_guides_ordered_by_useful: {
+					Args: {
+						sort_order: string;
+						tag_filters: string[] | null;
+					};
+					Returns: Database['public']['Views']['guides_view']['Row'][];
+				};
+			};
 		};
 	}
 >;

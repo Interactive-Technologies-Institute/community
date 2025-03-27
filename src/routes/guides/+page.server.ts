@@ -6,7 +6,7 @@ import { setFlash } from 'sveltekit-flash-message/server';
 export const load = async (event) => {
 	const { user } = await event.locals.safeGetSession();
 	const search = stringQueryParam().decode(event.url.searchParams.get('s')) ?? '';
-	const tags = arrayQueryParam().decode(event.url.searchParams.get('tags')) ?? [];
+	const tags = arrayQueryParam().decode(event.url.searchParams.get('tags')) ?? null;
 	const sortBy = stringQueryParam().decode(event.url.searchParams.get('sortBy')) ?? 'date_updated';
 	const sortOrder = stringQueryParam().decode(event.url.searchParams.get('sortOrder')) ?? 'desc';
 
@@ -20,6 +20,20 @@ export const load = async (event) => {
 		} else if (sortBy === 'duration') {
 			query = query.order('duration', { ascending: sortOrder === 'asc' });
 		} else if (sortBy === 'likes') {
+			const { data: guides, error: guidesError } = await event.locals.supabase
+				.rpc('get_guides_ordered_by_useful', {
+					sort_order: sortOrder,
+					tag_filters: tags,
+				})
+				.ilike('title', `%${search}%`);
+
+			if (guidesError) {
+				const errorMessage = 'Error fetching guides by likes, please try again later.';
+				setFlash({ type: 'error', message: errorMessage }, event.cookies);
+				return error(500, errorMessage);
+			}
+
+			return guides;
 		}
 
 		if (search) {
@@ -89,7 +103,6 @@ export const load = async (event) => {
 			guides.map(async (guide) => {
 				const { id } = guide;
 				const useful = await getUsefulCount(id);
-
 				return { guide, useful };
 			})
 		);
