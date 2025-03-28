@@ -127,8 +127,19 @@ export const load = async (event) => {
 		const guideInfos = await Promise.all(
 			guides.map(async (guide) => {
 				const { id } = guide;
-				const [useful, bookmark] = await Promise.all([getUsefulCount(id), getBookmark(id)]);
-				return { guide, useful, bookmark };
+				const { data: guideInfo, error: guideInfoError } = await event.locals.supabase
+					.rpc('get_guide_info', {
+						guide_id: id,
+						user_id: user?.id
+					})
+					.single();
+					
+					if (guideInfoError) {
+						const errorMessage = 'Error fetching guide info, please try again later.';
+						setFlash({ type: 'error', message: errorMessage }, event.cookies);
+						return error(500, errorMessage);
+					}
+				return { guide, useful: { count: guideInfo.count, userUseful: guideInfo.has_useful }, bookmark: { userBookmark: guideInfo.has_bookmark } };
 			})
 		);
 
