@@ -32,7 +32,7 @@
 	$: submitting = false;
 	let textarea: HTMLTextAreaElement;
 
-	async function transcribe(audioFile) {
+	async function transcribe(audioFile: File) {
 		try {
 			const transcription = await openai.audio.transcriptions.create({
 				file: audioFile,
@@ -61,7 +61,8 @@
 	const getBlobFromUrl = async (url: string) => {
 		const response = await fetch(url);
 		const arrayBuffer = await response.arrayBuffer();
-		const blob = new Blob([arrayBuffer], { type: response.headers.get('content-type') });
+		const contentType = response.headers.get('content-type') || 'application/octet-stream';
+		const blob = new Blob([arrayBuffer], { type: contentType });
 		return blob;
 	};
 
@@ -92,7 +93,7 @@
 		if (!formData.transcription) {
 			try {
 				const transcriptionResult = await transcribeRecording(formData.recording_link);
-				transcription = transcriptionResult;
+				transcription = transcriptionResult ?? "";
 			} catch (error) {
 				console.error('Failed to transcribe recording:', error);
 			}
@@ -107,7 +108,7 @@
 		});
 	});
 
-	async function submitUpdateStoryForm(event) {
+	async function submitUpdateStoryForm(event : { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) {
 		submitting = true;
 		event.preventDefault();
 
@@ -135,7 +136,7 @@
 		applyAction(result);
 	}
 
-	function adjustTextareaHeight(textarea) {
+	function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
 		textarea.style.height = 'auto';
 		textarea.style.height = `${textarea.scrollHeight}px`;
 	}

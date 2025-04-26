@@ -1,18 +1,19 @@
 import { updateStoryTranscriptionSchema } from '@/schemas/story-transcription';
 import type { StoryWithTranscription } from '@/types/types';
 import { handleFormAction } from '@/utils';
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect, type ActionFailure, type Redirect} from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import type { Story } from '@/types/types.js';
 
 export const load = async (event) => {
-	const getExtension = (url) => {
+	const getExtension = (url : string) => {
 		const match = url.match(/\.([0-9a-z]+)(?:[\?#]|$)/i);
 		return match ? match[1] : null;
 	};
 
-	async function getStoryInfo(id: string): Promise<String> {
+	async function getStoryInfo(id: string): Promise<Story | ActionFailure<{ message: string; }>> {
 		let videoFileTemp;
 
 		const { data: storyInfo, error: storyError } = await event.locals.supabase
@@ -39,12 +40,17 @@ export const load = async (event) => {
 			}
 		}
 
-		return storyInfo;
+		return storyInfo as Story;
 	}
 
 	let story: StoryWithTranscription | null = null;
 	const storyData = await getStoryInfo(event.params.id);
-	if (storyData) story = storyData;
+
+	// If storyData is of type ActionFailure, it will have a 'status' attribute, not being possible for it to be a Story
+
+	if (!('status' in storyData)) {
+    	story = storyData;
+	}
 
 	return {
 		updateTranscriptionForm: await superValidate(story, zod(updateStoryTranscriptionSchema), {
@@ -76,9 +82,9 @@ export const actions = {
 					return { success: true };
 				}
 			);
-		} catch (error) {
-			if (error.status === 303) {
-				return redirect(303, error.location);
+		} catch (e) {
+			if ((e as Redirect).status === 303) {
+				return redirect(303, (e as Redirect).location);
 			}
 			return fail(500, { message: 'Internal Server Error' });
 		}

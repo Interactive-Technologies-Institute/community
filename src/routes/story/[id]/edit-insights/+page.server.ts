@@ -1,10 +1,11 @@
 import { updateStoryInsightsSchema } from '@/schemas/story-insights';
 import type { StoryWithInsights } from '@/types/types';
 import { handleFormAction } from '@/utils';
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect, type ActionFailure, type Redirect } from '@sveltejs/kit';
 import { setFlash } from 'sveltekit-flash-message/server';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import type { Story } from '@/types/types.js';
 
 export const load = async (event) => {
 	const getExtension = (url : string) => {
@@ -12,7 +13,7 @@ export const load = async (event) => {
 		return match ? match[1] : null;
 	};
 
-	async function getStoryInfo(id: string): Promise<String> {
+	async function getStoryInfo(id: string): Promise<Story | ActionFailure<{ message: string; }>> {
 		let videoFileTemp;
 
 		const { data: storyInfo, error: storyError } = await event.locals.supabase
@@ -35,16 +36,19 @@ export const load = async (event) => {
 
 			if (supabaseError) {
 				setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
-				return fail(500, { message: supabaseError.message });
+				return fail(500, { message: supabaseError.message});
 			}
 		}
 
-		return storyInfo;
+		return storyInfo as Story;
 	}
 
 	let story: StoryWithInsights | null = null;
 	const storyData = await getStoryInfo(event.params.id);
-	if (storyData) story = storyData;
+	// If storyData is of type ActionFailure, it will have a 'status' attribute, not being possible for it to be a Story
+	if (!('status' in storyData)) {
+    	story = storyData;
+	}
 
 	return {
 		updateInsightsForm: await superValidate(story, zod(updateStoryInsightsSchema), {
@@ -88,14 +92,16 @@ export const actions = {
 
 					throw redirect(303, `/story/${event.params.id}`);
 
+					// Possibly removable check later
 					return { success: true };
 				}
 			);
-		} catch (error) {
-			if (error.status === 303) {
-				return redirect(303, error.location);
+		} catch (e) {
+			if ((e as Redirect).status === 303) {
+				return redirect(303, (e as Redirect).location);
 			}
 			return fail(500, { message: 'Internal Server Error' });
 		}
+		
 	},
 };
