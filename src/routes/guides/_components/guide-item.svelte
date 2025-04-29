@@ -5,12 +5,10 @@
 	import { Button } from '@/components/ui/button';
 	import { Card } from '@/components/ui/card';
 	import type { Guide } from '@/types/types';
-	import { Tag, ThumbsUp, ChartNoAxesColumn, Bookmark } from 'lucide-svelte';
-	import { cn } from '@/utils';
+	import { Tag, Heart } from 'lucide-svelte';
 
 	export let guide: Guide;
-	export let useful: { count: number, userUseful: boolean };
-	export let bookmark: { userBookmark: boolean };
+	export let usefulCount: number;
 
 	const moderationStatusLabels = {
 		pending: 'Pending',
@@ -46,16 +44,10 @@
 				<p class="mt-2 text-sm text-muted-foreground">Updated at: {updatedAt}</p>
 			</div>
 				<div class="flex flex-wrap gap-2">
+					<Button variant="secondary" size="sm">{guide.difficulty}</Button>
 					<Button variant="secondary" size="sm">
-						<ChartNoAxesColumn class="mr-2 h-4 w-4"/>
-						{guide.difficulty}
-					</Button>
-					<Button variant="secondary" size="sm">
-						<ThumbsUp  class={cn('mr-2 h-4 w-4', { 'fill-foreground': useful.userUseful })}/>
-						{useful.count}
-					</Button>
-					<Button variant="secondary" size="sm">
-						<Bookmark class={cn('h-4 w-4', { 'fill-foreground': bookmark.userBookmark })} />
+						<Heart class="mr-2 h-4 w-4" />
+						{usefulCount}
 					</Button>
 				</div>
 			</div>
