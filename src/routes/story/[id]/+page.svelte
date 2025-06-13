@@ -19,7 +19,7 @@
 	subtitle={data.story.role === 'technician' ? 'Técnico' : 'Membro da Comunidade'}
 />
 <div class="container mx-auto space-y-10 pb-10">
-	{#if data.moderation.status !== 'approved'}
+	{#if data.moderation[0].status !== 'approved'}
 		<ModerationBanner moderation={data.moderation} />
 	{/if}
 	<div class="mb-10 flex flex-col items-center gap-y-4">
@@ -31,7 +31,7 @@
 				</Button>
 			{/each}
 		</div>
-		{#if data.moderation.status == 'approved'}
+		{#if data.moderation[0].status == 'approved'}
 			<Story data={data.story} />
 		{/if}
 
@@ -66,13 +66,13 @@
 					Gerar Análise
 				</Button>
 			{/if}
-			{#if data.moderation.status === 'pending'}
+			{#if data.moderation[0].status === 'pending'}
 				<Button href="/story/{data.story.id}/preview" class="w-full sm:w-auto">
 					<LayoutPanelTop class="mr-2 h-4 w-4" />
 					Pré-visualizar história
 				</Button>
 			{/if}
-			{#if data.story.user_id === data.user?.id && data.moderation.status === 'approved'}
+			{#if data.story.user_id === data.user?.id && data.moderation[0].status === 'approved'}
 				<Button
 					variant="destructive"
 					on:click={() => (openUnpublishDialog = true)}

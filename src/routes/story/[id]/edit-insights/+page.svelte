@@ -15,9 +15,10 @@
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { Loader2 } from 'lucide-svelte';
 
-	export let data: SuperValidated<Infer<UpdateStoryInsightsSchema>>;
+	export let data: { updateInsightsForm: SuperValidated<Infer<UpdateStoryInsightsSchema>> };
 
-	const form = superForm(data, {
+
+	const form = superForm(data.updateInsightsForm, {
 		validators: zodClient(updateStoryInsightsSchema),
 		taintedMessage: true,
 		dataType: 'json',
@@ -32,6 +33,7 @@
 	$: insights = '';
 	$: transcription = '';
 	$: submitting = false;
+	$: generated = false;
 	let textarea: HTMLTextAreaElement;
 
 	let technician_text =
@@ -73,6 +75,8 @@
 				top_p: 1,
 			});
 
+			generated = true;
+
 			return response;
 		} catch (error) {
 			console.log('error in generating insights', error);
@@ -100,7 +104,7 @@
 	};
 
 	onMount(async () => {
-		const formData = $formData.updateInsightsForm.data;
+		const formData = $formData;
 
 		const transcribeRecording = async (recordingLink: string) => {
 			const extension = getExtension(recordingLink);
@@ -123,22 +127,32 @@
 			}
 		};
 
-		if (!formData.transcription) {
-			try {
-				const transcriptionResult = await transcribeRecording(formData.recording_link);
-				transcription = transcriptionResult ?? "";
-				let insightsResult = await generate_insights(formData.role, transcription) ?? "";
-				insights = typeof insightsResult === 'string' ? insightsResult : insightsResult?.choices[0]?.message.content ?? '';
-			} catch (error) {
-				console.error('Failed to transcribe recording:', error);
+		try {
+			if (formData.role !== undefined){
+				if (!formData.transcription) {
+						if (formData.recording_link !== undefined){
+							const transcriptionResult = await transcribeRecording(formData.recording_link);
+							transcription = transcriptionResult ?? "";
+							let insightsResult = await generate_insights(formData.role, transcription) ?? "";
+							insights = typeof insightsResult === 'string' ? insightsResult : insightsResult?.choices[0]?.message.content ?? '';
+						}
+						else{
+							throw new Error("Failed to edit insight")
+						}
+				} else {
+					if (formData.insights_gpt) {
+						insights = formData.insights_gpt;
+					} else {
+						let insightsResult = await generate_insights(formData.role, transcription) ?? "";
+						insights = typeof insightsResult === 'string' ? insightsResult : insightsResult?.choices[0]?.message.content ?? '';
+					}
+				}
 			}
-		} else {
-			if (formData.insights_gpt) {
-				insights = formData.insights_gpt;
-			} else {
-				let insightsResult = await generate_insights(formData.role, transcription) ?? "";
-				insights = typeof insightsResult === 'string' ? insightsResult : insightsResult?.choices[0]?.message.content ?? '';
+			else{
+				throw new Error("Failed to edit insight");
 			}
+		} catch (error) {
+			console.error(error);
 		}
 
 		afterUpdate(() => {
@@ -157,7 +171,7 @@
 
 		let newFormData = new FormData();
 
-		if (!$formData.updateInsightsForm.data.transcription) {
+		if (!$formData.transcription) {
 			newFormData.append('transcription', transcription);
 		}
 
@@ -193,7 +207,7 @@
 	on:submit|preventDefault={submitUpdateStoryForm}
 >
 	<div class="container mx-auto space-y-10 pb-10">
-		{#if insights === ''}
+		{#if insights === '' && !generated}
 			<PencilLine class="mx-auto h-32 w-32" />
 			<h2 class="mb-2 text-center text-2xl font-medium">A gerar a análise...</h2>
 			<p class="text-center">Por favor, não recarregue a página.</p>
@@ -214,7 +228,7 @@
 		<div
 			class="sticky bottom-0 flex w-full flex-row items-center justify-center gap-x-10 border-t bg-background/95 py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 		>
-			<Button variant="outline" type="submit" disabled={insights === '' || submitting}>
+			<Button variant="outline" type="submit" disabled={insights.length < 5 || submitting}>
 				{#if submitting}
 					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 				{/if}

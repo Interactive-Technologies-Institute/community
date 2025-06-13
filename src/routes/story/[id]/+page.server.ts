@@ -26,12 +26,11 @@ export const load = async (event) => {
 		return story as Story;
 	}
 
-	async function getStoryModeration(id: string): Promise<ModerationInfo> {
+	async function getStoryModeration(id: string): Promise<ModerationInfo[]> {
 		const { data: moderation, error: moderationError } = await event.locals.supabase
 			.from('story_moderation')
 			.select('*')
-			.eq('story_id', id)
-			.single();
+			.eq('story_id', id);
 
 		if (moderationError) {
 			const errorMessage = 'Error fetching moderation, please try again later.';
