@@ -11,7 +11,7 @@
 
 	import InPlaceEdit from './in-place-edit.svelte';
 	import PageHeader from '@/components/page-header.svelte';
-	import { createStorySchema, type CreateStorySchema } from '@/schemas/story';
+	import { previewStorySchema, type PreviewStorySchema } from '@/schemas/preview_story';
 	import { onMount } from 'svelte';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
@@ -19,11 +19,11 @@
 	import { applyAction, deserialize } from '$app/forms';
 	import { Loader2 } from 'lucide-svelte';
 
-	export let data: SuperValidated<Infer<CreateStorySchema>>;
+	export let data: SuperValidated<Infer<PreviewStorySchema>>;
 	export let user;
 
 	const form = superForm(data, {
-		validators: zodClient(createStorySchema),
+		validators: zodClient(previewStorySchema),
 		taintedMessage: true,
 		dataType: 'json',
 		resetForm: false,
@@ -32,14 +32,12 @@
 	const { form: formData, enhance } = form;
 
 	let updateStoryForm: HTMLFormElement;
-
-	$: paragraphs = [];
-	$: quotes = [];
-	let user_id;
+	let paragraphs: string[] = [];
+	let quotes: string[] = [];
+	let user_id = '';
 	let currentTab = 't1';
 
 	const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
-	$: story = '';
 	$: transcription = '';
 
 	let technician_text = `
@@ -126,9 +124,9 @@
 		});
 	}
 
-	async function organizeText(text) {
-		let paragraphsText = [];
-		let quotesText = [];
+	async function organizeText(text: string) {
+		let paragraphsText: string[] = [];
+		let quotesText: string[] = [];
 
 		// Separate the story from the quotes
 		let parts = text.split('# Quotes importantes:');
@@ -153,7 +151,7 @@
 		return [paragraphsText, quotesText];
 	}
 
-	async function transcribe(audioFile) {
+	async function transcribe(audioFile: File) {
 		try {
 			const transcription = await openai.audio.transcriptions.create({
 				file: audioFile,
@@ -168,7 +166,7 @@
 		}
 	}
 
-	async function generate_story(role, transcription: string) {
+	async function generate_story(role: string, transcription: string) {
 		try {
 			const response = await openai.chat.completions.create({
 				model: 'gpt-4o',
@@ -210,12 +208,14 @@
 	const getBlobFromUrl = async (url: string) => {
 		const response = await fetch(url);
 		const arrayBuffer = await response.arrayBuffer();
-		const blob = new Blob([arrayBuffer], { type: response.headers.get('content-type') });
+		const contentType = response.headers.get('content-type') || 'application/octet-stream';
+		const blob = new Blob([arrayBuffer], { type: contentType });
 		return blob;
 	};
 
 	onMount(async () => {
 		const formData = $formData;
+
 		user_id = formData.user_id;
 
 		const transcribeRecording = async (recordingLink: string) => {
@@ -241,10 +241,16 @@
 
 		if (!formData.transcription) {
 			try {
-				const transcriptionResult = await transcribeRecording(formData.recording_link);
-				transcription = transcriptionResult;
-				story = await generate_story(formData.role, transcription);
-				organizeText(formData.storyteller, story);
+				if (formData.recording_link !== undefined){
+					const transcriptionResult = await transcribeRecording(formData.recording_link);
+					transcription = transcriptionResult ?? "";
+					let storyResult = await generate_story(formData.role, transcription);
+					if(storyResult && storyResult.choices[0].message.content){
+						let [paragraphsResult, quotesResult] = await organizeText(storyResult.choices[0].message.content);				
+						paragraphs = paragraphsResult;
+						quotes = quotesResult;
+					}
+				}
 			} catch (error) {
 				console.error('Failed to transcribe recording:', error);
 			}
@@ -254,24 +260,25 @@
 				quotes = formData.pub_quotes;
 			} else {
 				let storyResult = await generate_story(formData.role, formData.transcription);
-				let [paragraphsResult, quotesResult] = await organizeText(
-					storyResult.choices[0].message.content
-				);
-				paragraphs = paragraphsResult;
-				quotes = quotesResult;
+				if(storyResult && storyResult.choices[0].message.content){
+					let [paragraphsResult, quotesResult] = await organizeText(storyResult.choices[0].message.content);				
+					paragraphs = paragraphsResult;
+					quotes = quotesResult;
+				}
 			}
 		}
 	});
 
 	function submit(field: string) {
-		return ({ detail: newValue }) => {
-			// IRL: POST value to server here
+		return ({ detail: newValue }: CustomEvent<string>) => {
 			console.log(`updated ${field}, new value is: "${newValue}"`);
 		};
 	}
 
-	async function submitUpdateStoryForm(event) {
-		if (event.submitter.value === 'save') {
+	async function submitUpdateStoryForm(event: SubmitEvent) {
+		const submitter = event.submitter as HTMLButtonElement;
+
+		if (submitter && submitter.value === 'save') {
 			submittingSave = true;
 		} else {
 			submittingPublish = true;
@@ -279,14 +286,13 @@
 
 		event.preventDefault();
 
-		const newFormData = new FormData(event.currentTarget);
+		const form = event.currentTarget as HTMLFormElement;
+		
+		const newFormData = new FormData(form);
 
 		if (event.submitter) {
-			newFormData.append(event.submitter.name, event.submitter.value);
+			newFormData.append(submitter.name, submitter.value);
 		}
-
-		console.log('current quote', currentQuote);
-		console.log('quotes', quotes);
 
 		paragraphs.forEach((p) => newFormData.append('pub_story_text', p));
 		newFormData.append('pub_quotes', quotes[currentQuote]);
@@ -296,7 +302,7 @@
 			'pub_selected_images',
 			currentFirstImage == 0 ? imageOptions[1].src : imageOptions[0].src
 		);
-		newFormData.append('id', $formData.id);
+		newFormData.append('id', $formData.id.toString());
 		newFormData.append('template', currentTab);
 
 		const response = await fetch('?/updateStory', {
@@ -309,7 +315,7 @@
 
 		const result = deserialize(await response.text());
 		if (result.type === 'success') {
-			if (event.submitter.value === 'save') {
+			if (submitter.value === 'save') {
 				submittingSave = false;
 			} else {
 				submittingPublish = false;

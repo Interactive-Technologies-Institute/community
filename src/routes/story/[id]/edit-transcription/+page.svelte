@@ -14,9 +14,9 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
-	export let data: SuperValidated<Infer<UpdateStoryTranscriptionSchema>>;
+	export let data: { updateTranscriptionForm: SuperValidated<Infer<UpdateStoryTranscriptionSchema>> };
 
-	const form = superForm(data, {
+	const form = superForm(data.updateTranscriptionForm, {
 		validators: zodClient(updateStoryTranscriptionSchema),
 		taintedMessage: true,
 		dataType: 'json',
@@ -30,6 +30,7 @@
 	const openai = new OpenAI({ apiKey: PUBLIC_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
 	$: transcription = '';
 	$: submitting = false;
+	$: generated = false;
 	let textarea: HTMLTextAreaElement;
 
 	async function transcribe(audioFile: File) {
@@ -39,6 +40,8 @@
 				model: 'whisper-1',
 				response_format: 'text',
 			});
+
+			generated = true;
 
 			return transcription;
 		} catch (error) {
@@ -67,7 +70,9 @@
 	};
 
 	onMount(async () => {
-		const formData = $formData.updateTranscriptionForm.data;
+		const formData = $formData;
+
+		console.log(formData);
 
 		const transcribeRecording = async (recordingLink: string) => {
 			const extension = getExtension(recordingLink);
@@ -117,7 +122,7 @@
 
 		let newFormData = new FormData();
 
-		newFormData.append('recording_link', $formData.updateTranscriptionForm.data.recording_link);
+		newFormData.append('recording_link', $formData.recording_link);
 		newFormData.append('transcription', transcription);
 
 		const response = await fetch('?/updateStory', {
@@ -150,7 +155,7 @@
 	on:submit|preventDefault={submitUpdateStoryForm}
 >
 	<div class="container mx-auto space-y-10 pb-10">
-		{#if transcription === ''}
+		{#if transcription === '' && !generated}
 			<PencilLine class="mx-auto h-32 w-32" />
 			<h2 class="mb-2 text-center text-2xl font-medium">A gerar transcrição...</h2>
 			<p class="text-center">Por favor, não recarregue a página.</p>
@@ -171,7 +176,7 @@
 		<div
 			class="sticky bottom-0 flex w-full flex-row items-center justify-center gap-x-10 border-t bg-background/95 py-8 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 		>
-			<Button variant="outline" type="submit" disabled={transcription === '' || submitting}>
+			<Button variant="outline" type="submit" disabled={transcription.length < 5|| submitting}>
 				{#if submitting}
 					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 				{/if}

@@ -44,45 +44,59 @@
 
 	let createStoryForm: HTMLFormElement;
 
-	let mediaFile;
-	$: imageFiles = [];
+	let mediaFile: File | Blob;
+	let imageFiles: File[] = [];
 	$: submitting = false;
 
-	function handleMediaUpload(event) {
-		mediaFile = event.target.files[0];
-		recordingState = 'recorded';
-		console.log('video', mediaFile);
-	}
-
-	function handleImageUpload(event) {
-		imageFiles.push(...event.target.files);
-		console.log('images', imageFiles);
-		if (!firstImageTaken) {
-			firstImageTaken = true;
-		} else if (!secondImageTaken) {
-			secondImageTaken = true;
+	function handleMediaUpload(event: Event) {
+		if (event.target){
+			const target = event.target as HTMLInputElement;
+			if(target.files){
+				mediaFile = target.files[0];
+				recordingState = 'recorded';
+				console.log('video', mediaFile);
+			}
 		}
 	}
 
-	const startRecording = (type) => {
+	function handleImageUpload(event: Event) {
+		if (event.target){
+			const target = event.target as HTMLInputElement;
+			if(target.files){
+				imageFiles.push(...target.files);
+				console.log('images', imageFiles);
+				if (!firstImageTaken) {
+					firstImageTaken = true;
+				} else if (!secondImageTaken) {
+					secondImageTaken = true;
+				}
+			}
+		}
+	}
+
+	const startRecording = (type: string) => {
 		recordingType = type;
-		document.getElementById(type === 'video' ? 'videoFile' : 'audioFile').click();
+		const id = type === 'video' ? 'videoFile' : 'audioFile';
+		document.getElementById(id)!.click();
 	};
 
 	const deleteRecording = () => {
-		mediaFile = null;
+		mediaFile = new Blob();
 		recordingState = 'idle';
 		recordingType = '';
-		document.getElementById(recordingType === 'video' ? 'videoFile' : 'audioFile').value = null;
+		const id = recordingType === 'video' ? 'videoFile' : 'audioFile';
+		(document.getElementById(id) as HTMLInputElement).value = '';
 	};
 
-	async function submitCreateStoryForm(event) {
+	async function submitCreateStoryForm(event: Event) {
 		submitting = true;
 		event.preventDefault();
 
-		const formData = new FormData(event.currentTarget);
+		const form = event.currentTarget as HTMLFormElement;
 
-		async function uploadVideo(video, type) {
+		const formData = new FormData(form);
+
+		async function uploadVideo(video: File | Blob, type: string) {
 			const tempFormData = new FormData();
 			tempFormData.append('file', video);
 			tempFormData.append('upload_preset', 'bb-comunidade');
@@ -126,7 +140,7 @@
 
 		// Iterate over the entries of the original FormData
 		for (let [key, value] of formData.entries()) {
-			if (key !== 'image' || key !== 'recording_link') {
+			if (key !== 'image' && key !== 'recording_link') {
 				newFormData.append(key, value);
 			}
 		}
@@ -150,9 +164,10 @@
 		applyAction(result);
 	}
 
-	function triggerFileInput(id) {
-		document.getElementById(id).click();
+	function triggerFileInput(id: string) {
+		(document.getElementById(id) as HTMLElement | null)?.click();
 	}
+
 </script>
 
 <div class="container mx-auto space-y-10 pb-10">
@@ -171,7 +186,7 @@
 					<Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors"
 						>Qual é o nome da pessoa?</Form.Label
 					>
-					<span class="inline-block flex justify-center gap-2 pt-3">
+					<span class="inline-flex justify-center gap-2 pt-3">
 						<Input class="w-auto" {...attrs} bind:value={$formData.storyteller} required />
 						<Form.FieldErrors />
 						<span
@@ -190,7 +205,7 @@
 					<Form.Label class="pb-2 text-3xl font-semibold tracking-tight transition-colors"
 						>Em qual Balcão você está?</Form.Label
 					>
-					<span class="inline-block flex justify-center gap-2 pt-3">
+					<span class="inline-flex justify-center gap-2 pt-3">
 						<Input class="w-auto" {...attrs} bind:value={$formData.tags} required />
 						<Form.FieldErrors />
 						<span
@@ -297,7 +312,6 @@
 								type="button"
 								class="cursor-pointer bg-black p-2 text-sm text-white"
 								on:click={() => startRecording('video')}
-								disabled={recordingState === 'recorded'}
 							>
 								<Video />
 							</Button>
@@ -305,7 +319,6 @@
 								type="button"
 								class="cursor-pointer bg-black p-2 text-sm text-white"
 								on:click={() => startRecording('audio')}
-								disabled={recordingState === 'recorded'}
 							>
 								<Mic />
 							</Button>
