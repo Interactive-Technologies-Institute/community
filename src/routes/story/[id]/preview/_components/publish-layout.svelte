@@ -119,7 +119,6 @@
 		selectedQuote = quotes[currentQuote];
 		apiQuote.on('select', () => {
 			currentQuote = currentQuote === 0 ? 1 : 0;
-			console.log(currentQuote);
 			selectedQuote = quotes[currentQuote];
 		});
 	}
@@ -146,7 +145,8 @@
 						.replace(/^\d+\.\s*/, '')
 						.replace(/^"|"$/g, '')
 						.trim()
-				);
+				)
+				.filter((line) => line.length > 0);
 		}
 		return [paragraphsText, quotesText];
 	}
@@ -439,9 +439,9 @@
 							</div>
 
 							<div class="pt-4">
-								{#each paragraphs as element, i (element)}
+								{#each paragraphs as p}
 									<p class="pt-2 text-justify">
-										<InPlaceEdit bind:value={element} on:submit={submit('text')} />
+										<InPlaceEdit bind:value={p} on:submit={submit('text')} />
 									</p>
 								{/each}
 							</div>
@@ -485,9 +485,9 @@
 								</Carousel.Root>
 							</div>
 
-							{#each paragraphs as element, i (element)}
+							{#each paragraphs as p, i }
 								<p class="text-justify">
-									<InPlaceEdit bind:value={element} on:submit={submit('text')} />
+									<InPlaceEdit bind:value={p} on:submit={submit('text')} />
 								</p>
 								{#if i === paragraphs.length - 3}
 									<div class="mt-6 w-full lg:w-full">
