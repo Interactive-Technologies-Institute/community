@@ -7,6 +7,9 @@ export type Database = MergeDeep<
 	DatabaseGenerated,
 	{
 		public: {
+			Enums: {
+				story_role: 'community' | 'technician';
+			};
 			Tables: {
 				guides: {
 					Row: {
@@ -118,6 +121,26 @@ export type Database = MergeDeep<
 						user_id: string;
 					};
 				};
+				story_view: {
+					Row: {
+						id: number;
+						inserted_at: string;
+						updated_at: string;
+						storyteller: string;
+						user_id: string;
+						tags:string[];
+						role: Database['public']['Enums']['story_role'];
+						recording_link: string;
+						transcription: string;
+						image: string[];
+						template: string;
+						pub_story_text: string[];
+						pub_quotes: string[];
+						pub_selected_images: string[];
+						pub_insights_gpt: string[];
+						moderation_status: Database['public']['Enums']['moderation_status'];
+					};
+				};
 				profiles_view: {
 					Row: {
 						description: string;
@@ -128,6 +151,7 @@ export type Database = MergeDeep<
 						role: Database['public']['Enums']['user_role'];
 						type: string;
 						updated_at: string;
+						avatar: string | null;
 					};
 				};
 			};
