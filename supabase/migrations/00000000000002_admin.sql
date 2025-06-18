@@ -1,6 +1,6 @@
 /* ADMIN */
 -- Features
-create type public.feature as enum ('guides', 'events', 'map', 'docs');
+create type public.feature as enum ('howtos', 'events', 'map', 'academy', 'stories');
 create table public.feature_flags (
 	id public.feature primary key,
 	enabled boolean not null default false
@@ -102,7 +102,8 @@ insert into public.feature_flags (id, enabled)
 values ('guides'::public.feature, true),
 	('events'::public.feature, true),
 	('map'::public.feature, true),
-	('docs'::public.feature, true);
+	('academy'::public.feature, true),
+	('stories'::public.feature, true);
 insert into public.user_types (slug, label, is_default)
 values ('default', 'Default', true);
 insert into public.branding (name, slogan, color_theme, radius)
