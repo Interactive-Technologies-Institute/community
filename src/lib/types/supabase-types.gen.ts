@@ -1108,7 +1108,10 @@ export type Database = {
         }[]
       }
       get_guide_bookmark: {
-        Args: { guide_id: number; user_id?: string }
+        Args: {
+          guide_id: number
+          user_id?: string
+        }
         Returns: {
           has_bookmark: boolean
         }[]
@@ -1129,7 +1132,14 @@ export type Database = {
         }[]
       }
       get_guides_ordered_by_useful: {
-        Args: { sort_order?: string; tag_filters?: string[] }
+        Args: {
+          sort_order?: string
+          search?: string
+          tag_filters?: string[]
+          user_id?: string
+          filter_liked?: boolean
+          filter_bookmarked?: boolean
+        }
         Returns: {
           description: string | null
           difficulty: Database["public"]["Enums"]["guide_difficulty"] | null

@@ -3,7 +3,7 @@
 	import { Button } from '@/components//ui/button';
 	import * as Command from '@/components//ui/command';
 	import * as Popover from '@/components//ui/popover';
-	import { Check, Filter } from 'lucide-svelte';
+	import { Check, Filter, ThumbsUp, Bookmark } from 'lucide-svelte';
 
 	export let filterValues: string[] | null = [];
 	export let tags: Map<string, number> = new Map();
@@ -28,14 +28,61 @@
 					<div class="absolute -right-1 -top-1 flex h-2 w-2 rounded-full bg-primary md:mr-2"></div>
 				{/if}
 			</div>
-			<span class="sr-only md:not-sr-only">Filter by Tag</span>
+			<span class="sr-only md:not-sr-only">Filter</span>
 		</Button>
 	</Popover.Trigger>
-	<Popover.Content class="mt-2 w-[200px] p-0" align="start" side="bottom">
-		<Command.Root>
+	<Popover.Content class="mt-2 w-[300px] p-0" align="start" side="bottom">
+		<Command.Root class="divide-border border-muted bg-background flex h-full w-full flex-col divide-y self-start overflow-hidden">
 			<Command.Input placeholder="Filter by" />
 			<Command.List>
 				<Command.Empty>No tags found.</Command.Empty>
+				<span class="text-muted-foreground px-3 pb-2 pt-4 text-xs">Likes and Bookmarks</span>
+				<Command.Group>
+					<Command.Item 
+						value="liked"
+						onSelect={(currentValue) => {
+							handleSelect(currentValue);
+						}}
+					>
+						<div
+							class={cn(
+								'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+								filterValues?.includes('liked')
+									? 'bg-primary text-primary-foreground'
+									: 'opacity-50 [&_svg]:invisible'
+							)}
+						>
+							<Check class="h-4 w-4" />
+						</div>
+						<div class="flex items-center gap-x-2">
+							<ThumbsUp class="h-4 w-4" />
+							<span>Liked guides</span>
+						</div>
+					</Command.Item>
+					<Command.Item 
+						value="bookmarked"
+						onSelect={(currentValue) => {
+							handleSelect(currentValue);
+						}}
+					>
+						<div
+							class={cn(
+								'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+								filterValues?.includes('bookmarked')
+									? 'bg-primary text-primary-foreground'
+									: 'opacity-50 [&_svg]:invisible'
+							)}
+						>
+							<Check class="h-4 w-4" />
+						</div>
+						<div class="flex items-center gap-x-2">
+							<Bookmark class="h-4 w-4" />
+							<span>Bookmarked guides</span>
+						</div>
+					</Command.Item>
+				</Command.Group>
+				<Command.Separator class="bg-foreground/5 h-px w-full" />
+				<span class="text-muted-foreground px-3 pb-2 pt-4 text-xs">Tags</span>
 				<Command.Group>
 					{#each tags as tag}
 						<Command.Item
