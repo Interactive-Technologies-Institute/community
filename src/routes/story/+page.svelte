@@ -23,7 +23,7 @@
 	<div class="flex flex-1 flex-row gap-x-2 sm:gap-x-4 md:flex-auto">
 		<Input placeholder="Search..." class="flex-1 sm:max-w-64" bind:value={$search}></Input>
 		<TagFilterButton tags={data.tags} bind:filterValues={$tags} />
-		<SortButton />
+		<!-- <SortButton />-->
 	</div>
 	{#if data.permission}
 		<Button href="/story/create" class="w-10 p-0 sm:w-auto sm:px-4 sm:py-2">

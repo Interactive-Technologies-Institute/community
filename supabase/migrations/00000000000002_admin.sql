@@ -102,7 +102,7 @@ insert into public.feature_flags (id, enabled)
 values ('guides'::public.feature, true),
 	('events'::public.feature, true),
 	('map'::public.feature, true),
-	('docs'::public.feature, true);
+	('docs'::public.feature, true),
 	('stories'::public.feature, true);
 insert into public.user_types (slug, label, is_default)
 values ('default', 'Default', true);
