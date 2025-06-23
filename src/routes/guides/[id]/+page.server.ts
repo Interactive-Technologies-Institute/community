@@ -99,13 +99,6 @@ export const load = async (event) => {
 			zod(toggleGuideBookmarkSchema),
 			{ id: 'toggle-guide-bookmark' }
 		),
-		toggleBookmarkForm: await superValidate(
-			{ value: bookmark.userBookmark },
-			zod(toggleGuideBookmarkSchema),
-			{
-				id: 'toggle-guide-bookmark',
-			}
-		),
 	};
 };
 

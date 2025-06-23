@@ -145,6 +145,23 @@ order by
     case when sort_order = 'asc' then coalesce(usefuls.usefuls_count, 0) end asc,
     case when sort_order = 'desc' then coalesce(usefuls.usefuls_count, 0) end desc;
 $$;
+create function public.get_guide_info(
+    guide_id bigint, 
+    user_id uuid default null
+) 
+returns table (
+    count bigint, 
+    has_useful boolean, 
+    has_bookmark boolean
+) 
+language sql 
+security definer 
+as $$
+select 
+    (select (get_guide_useful_count(guide_id, user_id)).count) as count,
+    (select (get_guide_useful_count(guide_id, user_id)).has_useful) as has_useful,
+    (select (get_guide_bookmark(guide_id, user_id))) as has_bookmark
+$$;
 -- Storage Buckets
 -- insert into storage.buckets (id, name, public, allowed_mime_types)
 -- values ('guides', 'Guides', true, '{"image/*"}');

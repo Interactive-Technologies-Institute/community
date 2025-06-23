@@ -156,7 +156,6 @@ export type Database = {
           id: number
           inserted_at: string
           status: Database["public"]["Enums"]["moderation_status"]
-          updated_at: string
           user_id: string
         }
         Insert: {
@@ -165,7 +164,6 @@ export type Database = {
           id?: number
           inserted_at?: string
           status: Database["public"]["Enums"]["moderation_status"]
-          updated_at?: string
           user_id: string
         }
         Update: {
@@ -174,7 +172,6 @@ export type Database = {
           id?: number
           inserted_at?: string
           status?: Database["public"]["Enums"]["moderation_status"]
-          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -360,14 +357,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "guides_moderation_guide_id_fkey1"
+            foreignKeyName: "guides_moderation_guide_id_fkey"
             columns: ["guide_id"]
             isOneToOne: false
             referencedRelation: "guides"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "guides_moderation_guide_id_fkey1"
+            foreignKeyName: "guides_moderation_guide_id_fkey"
             columns: ["guide_id"]
             isOneToOne: false
             referencedRelation: "guides_view"
@@ -582,7 +579,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar: string | null
-          description: string
+          description: string | null
           display_name: string
           email: string
           id: string
@@ -592,8 +589,8 @@ export type Database = {
         }
         Insert: {
           avatar?: string | null
-          description?: string
-          display_name?: string
+          description?: string | null
+          display_name: string
           email: string
           id: string
           inserted_at?: string
@@ -602,7 +599,7 @@ export type Database = {
         }
         Update: {
           avatar?: string | null
-          description?: string
+          description?: string | null
           display_name?: string
           email?: string
           id?: string
@@ -886,7 +883,6 @@ export type Database = {
           id: number | null
           inserted_at: string | null
           status: Database["public"]["Enums"]["moderation_status"] | null
-          updated_at: string | null
           user_id: string | null
         }
         Relationships: [
@@ -931,14 +927,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "guides_moderation_guide_id_fkey1"
+            foreignKeyName: "guides_moderation_guide_id_fkey"
             columns: ["guide_id"]
             isOneToOne: false
             referencedRelation: "guides"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "guides_moderation_guide_id_fkey1"
+            foreignKeyName: "guides_moderation_guide_id_fkey"
             columns: ["guide_id"]
             isOneToOne: false
             referencedRelation: "guides_view"
@@ -1052,6 +1048,7 @@ export type Database = {
       }
       story_view: {
         Row: {
+          fts: unknown | null
           id: number | null
           image: string[] | null
           inserted_at: string | null
@@ -1108,10 +1105,7 @@ export type Database = {
         }[]
       }
       get_guide_bookmark: {
-        Args: {
-          guide_id: number
-          user_id?: string
-        }
+        Args: { guide_id: number; user_id?: string }
         Returns: {
           has_bookmark: boolean
         }[]
@@ -1162,6 +1156,10 @@ export type Database = {
         Args: { types: Database["public"]["CompositeTypes"]["user_type"][] }
         Returns: undefined
       }
+      verify_user_password: {
+        Args: { password: string }
+        Returns: boolean
+      }
     }
     Enums: {
       feature: "guides" | "events" | "map" | "docs" | "stories"
@@ -1173,10 +1171,10 @@ export type Database = {
         | "approved"
         | "rejected"
       notification_type:
-        | "howto_pending"
-        | "howto_changes_requested"
-        | "howto_approved"
-        | "howto_rejected"
+        | "guide_pending"
+        | "guide_changes_requested"
+        | "guide_approved"
+        | "guide_rejected"
         | "event_pending"
         | "event_changes_requested"
         | "event_approved"
@@ -1185,16 +1183,16 @@ export type Database = {
         | "map_pin_changes_requested"
         | "map_pin_approved"
         | "map_pin_rejected"
-        | "guide_pending"
-        | "guide_changes_requested"
-        | "guide_approved"
-        | "guide_rejected"
       story_role: "community" | "technician"
       user_permission:
-        | "howtos.create"
-        | "howtos.update"
-        | "howtos.delete"
-        | "howtos.moderate"
+        | "user_roles.update"
+        | "user_types.update"
+        | "features.update"
+        | "branding.update"
+        | "guides.create"
+        | "guides.update"
+        | "guides.delete"
+        | "guides.moderate"
         | "events.create"
         | "events.update"
         | "events.delete"
@@ -1207,14 +1205,6 @@ export type Database = {
         | "map.update"
         | "map.delete"
         | "map.moderate"
-        | "features.update"
-        | "branding.update"
-        | "user_types.update"
-        | "user_roles.update"
-        | "guides.create"
-        | "guides.update"
-        | "guides.delete"
-        | "guides.moderate"
       user_role: "user" | "moderator" | "admin"
     }
     CompositeTypes: {
@@ -1345,10 +1335,10 @@ export const Constants = {
         "rejected",
       ],
       notification_type: [
-        "howto_pending",
-        "howto_changes_requested",
-        "howto_approved",
-        "howto_rejected",
+        "guide_pending",
+        "guide_changes_requested",
+        "guide_approved",
+        "guide_rejected",
         "event_pending",
         "event_changes_requested",
         "event_approved",
@@ -1357,17 +1347,17 @@ export const Constants = {
         "map_pin_changes_requested",
         "map_pin_approved",
         "map_pin_rejected",
-        "guide_pending",
-        "guide_changes_requested",
-        "guide_approved",
-        "guide_rejected",
       ],
       story_role: ["community", "technician"],
       user_permission: [
-        "howtos.create",
-        "howtos.update",
-        "howtos.delete",
-        "howtos.moderate",
+        "user_roles.update",
+        "user_types.update",
+        "features.update",
+        "branding.update",
+        "guides.create",
+        "guides.update",
+        "guides.delete",
+        "guides.moderate",
         "events.create",
         "events.update",
         "events.delete",
@@ -1380,14 +1370,6 @@ export const Constants = {
         "map.update",
         "map.delete",
         "map.moderate",
-        "features.update",
-        "branding.update",
-        "user_types.update",
-        "user_roles.update",
-        "guides.create",
-        "guides.update",
-        "guides.delete",
-        "guides.moderate",
       ],
       user_role: ["user", "moderator", "admin"],
     },
