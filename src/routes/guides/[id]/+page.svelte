@@ -54,7 +54,9 @@
 		</div>
 		<div class="flex flex-row items-center justify-center gap-x-4">
 			<UsefulButton count={data.usefulCount} data={data.toggleUsefulForm} />
-			<BookmarkButton data={data.toggleBookmarkForm} />
+			{#if data.user?.id}
+				<BookmarkButton data={data.toggleBookmarkForm} />
+			{/if}
 		</div>
 	</div>
 	<div class="mx-auto flex max-w-2xl flex-col gap-y-4">

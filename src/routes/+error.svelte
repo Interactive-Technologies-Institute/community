@@ -6,5 +6,5 @@
 
 <PageHeader title="Error {$page.status}" subtitle={$page.error?.message ?? ''} />
 <div class="container flex items-center justify-center">
-	<Button href="/">Go to landing page</Button>
+	<Button href="/">Go to landing page.</Button>
 </div>

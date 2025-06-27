@@ -4,6 +4,9 @@
 
 	export let role: UserRole;
 
+	let label: string = '';
+	let icon: any = null;
+
 	$: ({ label, icon } = typeMap[role]);
 </script>
 

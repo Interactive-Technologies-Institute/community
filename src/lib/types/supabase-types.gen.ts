@@ -7,31 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       branding: {
@@ -652,6 +627,137 @@ export type Database = {
         }
         Relationships: []
       }
+      story: {
+        Row: {
+          fts: unknown | null
+          id: number
+          image: string[]
+          inserted_at: string
+          insights_gpt: string | null
+          pub_quotes: string[] | null
+          pub_selected_images: string[] | null
+          pub_story_text: string[] | null
+          recording_link: string
+          role: Database["public"]["Enums"]["story_role"]
+          storyteller: string
+          tags: string[]
+          template: string | null
+          transcription: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          fts?: unknown | null
+          id?: number
+          image: string[]
+          inserted_at?: string
+          insights_gpt?: string | null
+          pub_quotes?: string[] | null
+          pub_selected_images?: string[] | null
+          pub_story_text?: string[] | null
+          recording_link: string
+          role: Database["public"]["Enums"]["story_role"]
+          storyteller: string
+          tags: string[]
+          template?: string | null
+          transcription?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          fts?: unknown | null
+          id?: number
+          image?: string[]
+          inserted_at?: string
+          insights_gpt?: string | null
+          pub_quotes?: string[] | null
+          pub_selected_images?: string[] | null
+          pub_story_text?: string[] | null
+          recording_link?: string
+          role?: Database["public"]["Enums"]["story_role"]
+          storyteller?: string
+          tags?: string[]
+          template?: string | null
+          transcription?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_moderation: {
+        Row: {
+          comment: string
+          id: number
+          inserted_at: string
+          status: Database["public"]["Enums"]["moderation_status"]
+          story_id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          id?: number
+          inserted_at?: string
+          status: Database["public"]["Enums"]["moderation_status"]
+          story_id: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          id?: number
+          inserted_at?: string
+          status?: Database["public"]["Enums"]["moderation_status"]
+          story_id?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_moderation_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "story"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_moderation_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "story_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_moderation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_moderation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -933,6 +1039,52 @@ export type Database = {
         }
         Relationships: []
       }
+      story_tags: {
+        Row: {
+          count: number | null
+          tag: string | null
+        }
+        Relationships: []
+      }
+      story_view: {
+        Row: {
+          fts: unknown | null
+          id: number | null
+          image: string[] | null
+          inserted_at: string | null
+          insights_gpt: string | null
+          moderation_status:
+            | Database["public"]["Enums"]["moderation_status"]
+            | null
+          pub_quotes: string[] | null
+          pub_selected_images: string[] | null
+          pub_story_text: string[] | null
+          recording_link: string | null
+          role: Database["public"]["Enums"]["story_role"] | null
+          storyteller: string | null
+          tags: string[] | null
+          template: string | null
+          transcription: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       authorize: {
@@ -942,35 +1094,32 @@ export type Database = {
         Returns: boolean
       }
       custom_access_token_hook: {
-        Args: {
-          event: Json
-        }
+        Args: { event: Json }
         Returns: Json
       }
       get_event_interest_count: {
-        Args: {
-          event_id: number
-          user_id?: string
-        }
+        Args: { event_id: number; user_id?: string }
         Returns: {
           count: number
           has_interest: boolean
         }[]
       }
       get_guide_bookmark: {
-        Args: {
-          guide_id: number
-          user_id?: string
-        }
+        Args: { guide_id: number; user_id?: string }
         Returns: {
           has_bookmark: boolean
         }[]
       }
+      get_guide_info: {
+        Args: { guide_id: number; user_id?: string }
+        Returns: {
+          count: number
+          has_useful: boolean
+          has_bookmark: boolean
+        }[]
+      }
       get_guide_useful_count: {
-        Args: {
-          guide_id: number
-          user_id?: string
-        }
+        Args: { guide_id: number; user_id?: string }
         Returns: {
           count: number
           has_useful: boolean
@@ -1004,20 +1153,16 @@ export type Database = {
         }[]
       }
       update_user_types: {
-        Args: {
-          types: Database["public"]["CompositeTypes"]["user_type"][]
-        }
+        Args: { types: Database["public"]["CompositeTypes"]["user_type"][] }
         Returns: undefined
       }
       verify_user_password: {
-        Args: {
-          password: string
-        }
+        Args: { password: string }
         Returns: boolean
       }
     }
     Enums: {
-      feature: "guides" | "events" | "map" | "docs"
+      feature: "guides" | "events" | "map" | "docs" | "stories"
       guide_difficulty: "easy" | "medium" | "hard"
       guide_duration: "short" | "medium" | "long"
       moderation_status:
@@ -1038,6 +1183,7 @@ export type Database = {
         | "map_pin_changes_requested"
         | "map_pin_approved"
         | "map_pin_rejected"
+      story_role: "community" | "technician"
       user_permission:
         | "user_roles.update"
         | "user_types.update"
@@ -1051,6 +1197,10 @@ export type Database = {
         | "events.update"
         | "events.delete"
         | "events.moderate"
+        | "story.create"
+        | "story.update"
+        | "story.delete"
+        | "story.moderate"
         | "map.create"
         | "map.update"
         | "map.delete"
@@ -1067,27 +1217,29 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1095,20 +1247,22 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1116,20 +1270,22 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1137,21 +1293,23 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
@@ -1160,7 +1318,60 @@ export type CompositeTypes<
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
+export const Constants = {
+  public: {
+    Enums: {
+      feature: ["guides", "events", "map", "docs", "stories"],
+      guide_difficulty: ["easy", "medium", "hard"],
+      guide_duration: ["short", "medium", "long"],
+      moderation_status: [
+        "pending",
+        "changes_requested",
+        "approved",
+        "rejected",
+      ],
+      notification_type: [
+        "guide_pending",
+        "guide_changes_requested",
+        "guide_approved",
+        "guide_rejected",
+        "event_pending",
+        "event_changes_requested",
+        "event_approved",
+        "event_rejected",
+        "map_pin_pending",
+        "map_pin_changes_requested",
+        "map_pin_approved",
+        "map_pin_rejected",
+      ],
+      story_role: ["community", "technician"],
+      user_permission: [
+        "user_roles.update",
+        "user_types.update",
+        "features.update",
+        "branding.update",
+        "guides.create",
+        "guides.update",
+        "guides.delete",
+        "guides.moderate",
+        "events.create",
+        "events.update",
+        "events.delete",
+        "events.moderate",
+        "story.create",
+        "story.update",
+        "story.delete",
+        "story.moderate",
+        "map.create",
+        "map.update",
+        "map.delete",
+        "map.moderate",
+      ],
+      user_role: ["user", "moderator", "admin"],
+    },
+  },
+} as const

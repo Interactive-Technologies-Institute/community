@@ -18,6 +18,8 @@ export const load = async (event) => {
 			return error(500, errorMessage);
 		}
 
+		console.log(users);
+
 		return users as UserProfile[];
 	}
 
@@ -42,7 +44,7 @@ export const actions = {
 					.from('user_roles')
 					.update({ role: form.data.role })
 					.eq('id', userId);
-
+				
 				if (supabaseError) {
 					setFlash({ type: 'error', message: supabaseError.message }, event.cookies);
 					return fail(500, { message: supabaseError.message, form });

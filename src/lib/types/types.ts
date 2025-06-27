@@ -1,6 +1,6 @@
 import type { User } from '@supabase/supabase-js';
 
-export type Feature = 'map' | 'guides' | 'events' | 'docs';
+export type Feature = 'map' | 'guides' | 'events' | 'docs' | 'stories';
 
 export type UserRole = 'user' | 'moderator' | 'admin';
 
@@ -133,4 +133,37 @@ export type Notification = {
 	type: NotificationType;
 	data: Record<string, string>;
 	read: boolean;
+};
+
+export type CommunityRole = 'community' | 'technician';
+
+export type Story = {
+	id: number;
+	storyteller: string;
+	user_id: string;
+	inserted_at: string;
+	updated_at: string;
+	image: string[];
+	tags: string[];
+	role: CommunityRole;
+	transcription: string;
+	recording_link: string;
+	pub_story_text: string[];
+	pub_quotes: string[];
+	pub_selected_images: string[];
+	insights_gpt: string;
+	template: string;
+	moderation_status: ModerationStatus;
+};
+
+export type StoryWithTranscription = {
+	recording_link: string;
+	transcription: string;
+};
+
+export type StoryWithInsights = {
+	role: CommunityRole;
+	recording_link: string;
+	insights_gpt: string;
+	transcription: string;
 };

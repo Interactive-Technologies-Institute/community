@@ -12,8 +12,9 @@
 
 	export let users: UserProfile[];
 	export let updateUserRoleForm: SuperValidated<Infer<UpdateUserRoleSchema>>;
-	let data = writable(users);
-	$: data.set(users);
+	let data = writable<UserProfile[]>([]);
+
+	$: if (users) data.set(users);
 
 	const table = createTable(data, { page: addPagination() });
 

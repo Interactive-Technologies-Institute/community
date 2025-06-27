@@ -69,7 +69,7 @@ export const load = async (event) => {
 				user_id: user?.id,
 			})
 			.single();
-		
+    
 		if (bookmarkError) {
 			const errorMessage = 'Error fetching bookmark, please try again later.';
 			setFlash({ type: 'error', message: errorMessage }, event.cookies);
@@ -154,6 +154,7 @@ export const actions = {
 				return { form };
 			}
 		),
+  
 		toggleBookmark: async (event) =>
 			handleFormAction(
 				event,
