@@ -142,6 +142,7 @@
 				} else {
 					if (formData.insights_gpt) {
 						insights = formData.insights_gpt;
+						generated = true;
 					} else {
 						let insightsResult = await generate_insights(formData.role, transcription) ?? "";
 						insights = typeof insightsResult === 'string' ? insightsResult : insightsResult?.choices[0]?.message.content ?? '';

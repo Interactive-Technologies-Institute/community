@@ -87,6 +87,21 @@
 						<Switch includeInput {...attrs} bind:checked={$formData.docs} />
 					</Form.Control>
 				</Form.Field>
+				<Form.Field
+					{form}
+					name="stories"
+					class="flex flex-row items-center justify-between rounded-lg border p-4"
+				>
+					<Form.Control let:attrs>
+						<div class="space-y-0.5">
+							<Form.Label>Stories</Form.Label>
+							<Form.Description>
+								Enable this feature to create and share stories.
+							</Form.Description>
+						</div>
+						<Switch includeInput {...attrs} bind:checked={$formData.stories} />
+					</Form.Control>
+				</Form.Field>
 			</div>
 		</Card.Content>
 		<Card.Footer>

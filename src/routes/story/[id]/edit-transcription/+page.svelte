@@ -104,6 +104,7 @@
 			}
 		} else {
 			transcription = formData.transcription;
+			generated = true;
 		}
 
 		afterUpdate(() => {
