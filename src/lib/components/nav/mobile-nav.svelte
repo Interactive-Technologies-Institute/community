@@ -84,7 +84,7 @@
 							$page.url.pathname.startsWith('/story') ? 'text-foreground' : 'text-foreground/60'
 						)}
 					>
-						Story
+						Stories
 					</a>
 				</FeatureWrapper>
 			</nav>
